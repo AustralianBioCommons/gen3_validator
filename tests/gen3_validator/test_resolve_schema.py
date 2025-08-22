@@ -98,36 +98,6 @@ def test_get_node_properties(ResolveSchema_instance):
     assert node_id == "demographic"
     assert set(property_keys) == {"sex"}
 
-
-def test_generate_node_lookup(ResolveSchema_instance):
-    # Prepare a mock schema with multiple nodes, including excluded ones
-    schema = {
-        "demographic.yaml": {
-            "id": "demographic",
-            "category": "clinical",
-            "properties": {
-                "sex": {
-                    "description": "Sex of the participant",
-                    "enum": ["male", "female", "other"]
-                }
-            }
-        },
-        "_definitions.yaml": None
-    }
-
-    expected = {
-        'demographic.yaml': {
-            'category': 'clinical',
-            'properties': ('demographic', ['sex'])
-        }
-    }
-
-    ResolveSchema_instance.schema = schema
-    ResolveSchema_instance.nodes = ['demographic.yaml', '_definitions.yaml']
-    node_lookup = ResolveSchema_instance.generate_node_lookup()
-    assert node_lookup == expected
-
-
 def test_find_upstream_downstream(ResolveSchema_instance):
     schema = {
         "sample.yaml": {
@@ -528,12 +498,9 @@ def test_resolve_schema(monkeypatch, ResolveSchema_instance):
     # Check that the attributes are set as expected
     assert ResolveSchema_instance.schema == schema
     assert set(ResolveSchema_instance.nodes) == set(schema.keys())
-    assert isinstance(ResolveSchema_instance.node_pairs, list)
-    assert isinstance(ResolveSchema_instance.node_order, list)
     assert isinstance(ResolveSchema_instance.schema_list, list)
     assert ResolveSchema_instance.schema_def == schema["_definitions.yaml"]
     assert ResolveSchema_instance.schema_term == schema["_terms.yaml"]
     assert ResolveSchema_instance.schema_def_resolved == schema["_definitions.yaml"]
     assert isinstance(ResolveSchema_instance.schema_list_resolved, list)
     assert ResolveSchema_instance.schema_resolved == ResolveSchema_instance.schema_list_resolved
-    assert ResolveSchema_instance.schema_version == "3.1.0"

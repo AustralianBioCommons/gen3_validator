@@ -18,8 +18,6 @@ class ResolveSchema(DataDictionary):
         logger.info(f"Initializing ResolveSchema with schema path: {schema_path}")
         self.schema = None
         self.nodes = None
-        self.node_pairs = None
-        self.node_order = None
         self.schema_list = None
         self.schema_def = None
         self.schema_term = None
@@ -27,32 +25,6 @@ class ResolveSchema(DataDictionary):
         self.schema_list_resolved = None
         self.schema_resolved = None
         self.schema_version = None
-
-    def generate_node_lookup(self) -> dict:
-        logger.info("Generating node lookup dictionary.")
-        node_lookup = {}
-        excluded_nodes = [
-            "_definitions.yaml",
-            "_terms.yaml",
-            "_settings.yaml",
-            "program.yaml",
-        ]
-
-        for node in self.nodes:
-            if node in excluded_nodes:
-                continue
-
-            try:
-                category = self.get_node_category(node)
-                if category:
-                    category = category[1]
-
-                props = self.get_node_properties(node)
-                node_lookup[node] = {"category": category, "properties": props}
-            except Exception as e:
-                logger.error(f"Error generating node lookup for {node}: {e}")
-                continue
-        return node_lookup
 
     def resolve_references(self, schema: dict, reference: dict) -> dict:
         """
@@ -201,12 +173,6 @@ class ResolveSchema(DataDictionary):
         self.nodes = self.get_nodes()
         logger.info(f"Retrieved {len(self.nodes)} nodes from schema.")
 
-        # Step 3: Get node pairs and order
-        self.node_pairs = self.get_all_node_pairs()
-        logger.info(f"Retrieved {len(self.node_pairs)} node pairs.")
-        self.node_order = self.get_node_order(edges=self.node_pairs)
-        logger.info("Determined node order based on dependencies.")
-
         # Step 4: Split schema into individual node schemas
         self.schema_list = self.split_json()
         logger.info("Split schema into individual node schemas.")
@@ -230,7 +196,3 @@ class ResolveSchema(DataDictionary):
         # Step 8: Convert resolved schema list to JSON format
         self.schema_resolved = self.schema_list_to_json(self.schema_list_resolved)
         logger.info("Converted resolved schema list to JSON format.")
-
-        # Step 9: Get schema version
-        self.schema_version = self.get_schema_version(self.schema)
-        logger.info(f"Obtained schema version: {self.schema_version}")
