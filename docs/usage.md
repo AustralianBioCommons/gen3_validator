@@ -457,3 +457,26 @@ Finally you can also create an aggreated summary of the flattened validation res
 ```python
 summary.collapse_flatten_results_to_pd()
 ```
+
+## Finding Node Paths in the Schema Graph
+You can use the `get_min_node_path` function to find the shortest path between the root node and a target node in the schema graph.
+- The `get_min_node_path` constructs a graph model from the edges, infers the root node if not provided, and finds the shortest path from the root node to the target node.
+
+```python
+from gen3_validator.dict import get_min_node_path
+
+edges = [
+    ("project", "subject"),
+    ("subject", "sample"),
+]
+min_path = get_min_node_path(edges, "sample", ignore_nodes=[])
+print("Minimum path to 'sample':", min_path.path)
+print("Steps:", min_path.steps)
+```
+
+**Output:**
+```
+Minimum path to 'sample': ['project', 'subject', 'sample']
+Steps: 2
+```
+
