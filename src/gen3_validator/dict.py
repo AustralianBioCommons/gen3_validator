@@ -367,7 +367,7 @@ class DataDictionary:
         """
         self.schema = self.read_json(self.schema_path)
         logger.info("Successfully read JSON schema.")
-
+        self.nodes = self.get_nodes()
         self.schema_list = self.split_json()
         logger.info("Split schema into individual node schemas.")
 

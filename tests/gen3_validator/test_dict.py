@@ -317,12 +317,11 @@ def test_parse_schema_sets_attributes(tmp_path):
     schema_path.write_text(json.dumps(schema_content))
 
     dd = DataDictionary(str(schema_path))
-    dd.nodes = ["subject.yaml", "sample.yaml"]  # Needed for split_json
-
     dd.parse_schema()
 
     # Check that schema and schema_list are set correctly
     assert dd.schema == schema_content
+    assert set(dd.nodes) == {"subject.yaml", "sample.yaml"}
     assert isinstance(dd.schema_list, list)
     assert {"id": "subject", "type": "object"} in dd.schema_list
     assert {"id": "sample", "type": "object"} in dd.schema_list
