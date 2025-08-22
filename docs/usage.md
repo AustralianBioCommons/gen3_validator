@@ -46,6 +46,9 @@ dd.calculate_node_order()
 dd.nodes
 dd.node_pairs
 dd.node_order
+
+# You can also get a summary of node, node category, and the properties for each node wtih
+dd.generate_node_lookup()
 ```
 
 
