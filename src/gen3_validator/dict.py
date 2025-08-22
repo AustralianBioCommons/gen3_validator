@@ -1,6 +1,8 @@
 import json
 from collections import defaultdict, deque
 import logging
+from dataclasses import dataclass
+from typing import List, Dict, Optional, Any, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -367,7 +369,7 @@ class DataDictionary:
         """
         self.schema = self.read_json(self.schema_path)
         logger.info("Successfully read JSON schema.")
-
+        self.nodes = self.get_nodes()
         self.schema_list = self.split_json()
         logger.info("Split schema into individual node schemas.")
 
@@ -382,3 +384,245 @@ class DataDictionary:
         logger.info(f"Retrieved {len(self.node_pairs)} node pairs.")
         self.node_order = self.get_node_order(edges=self.node_pairs)
         logger.info("Determined node order based on dependencies.")
+
+@dataclass
+class PathInfo:
+    """
+    Data structure representing a single path in a directed graph.
+
+    Attributes
+    ----------
+    path : List[str]
+        The sequence of node names (as strings) representing the path from the root to the destination node.
+    steps : int
+        The number of steps (edges) in the path. This is typically `len(path) - 1`.
+    """
+
+    path: List[str]
+    steps: int
+
+def build_graph(
+    edges: List[Tuple[str, str]],
+    ignore_nodes: Optional[List[str]] = None
+) -> Tuple[Dict[str, List[str]], Set[str], Set[str]]:
+    """
+    Build an adjacency list representation of a directed graph from a list of edges.
+
+    Parameters
+    ----------
+    edges : List[Tuple[str, str]]
+        A list of (upstream, downstream) node pairs representing directed edges in the graph.
+    ignore_nodes : Optional[List[str]], optional
+        A list of node names to ignore when building the graph. Edges involving these nodes are skipped.
+        Defaults to None.
+
+    Returns
+    -------
+    graph : Dict[str, List[str]]
+        The adjacency list representation of the graph, mapping each node to a list of its downstream neighbors.
+    all_nodes : Set[str]
+        The set of all node names present in the graph (including both upstream and downstream nodes).
+    downstream_nodes : Set[str]
+        The set of all nodes that appear as downstream nodes in any edge.
+
+    Examples
+    --------
+    >>> edges = [('A', 'B'), ('B', 'C')]
+    >>> build_graph(edges)
+    ({'A': ['B'], 'B': ['C']}, {'A', 'B', 'C'}, {'B', 'C'})
+    """
+    if ignore_nodes is None:
+        ignore_nodes = []
+    graph = defaultdict(list)
+    all_nodes = set()
+    downstream_nodes = set()
+    for upstream, downstream in edges:
+        if upstream in ignore_nodes or downstream in ignore_nodes:
+            continue
+        graph[upstream].append(downstream)
+        all_nodes.add(upstream)
+        all_nodes.add(downstream)
+        downstream_nodes.add(downstream)
+    return graph, all_nodes, downstream_nodes
+
+def find_root_node(
+    all_nodes: Set[str],
+    downstream_nodes: Set[str],
+    ignore_nodes: Optional[List[str]] = None,
+    root_node: Optional[str] = None
+) -> List[str]:
+    """
+    Identify the root nodes of a directed graph.
+
+    A root node is defined as a node that does not appear as a downstream node in any edge,
+    and is not in the ignore_nodes list. If a specific root_node is provided, only that node is returned.
+
+    Parameters
+    ----------
+    all_nodes : Set[str]
+        The set of all node names in the graph.
+    downstream_nodes : Set[str]
+        The set of all nodes that appear as downstream nodes in any edge.
+    ignore_nodes : Optional[List[str]], optional
+        A list of node names to ignore as possible roots. Defaults to None.
+    root_node : Optional[str], optional
+        If provided, this node is returned as the only root node.
+
+    Returns
+    -------
+    List[str]
+        A list of root node names.
+
+    Examples
+    --------
+    >>> all_nodes = {'A', 'B', 'C'}
+    >>> downstream_nodes = {'B', 'C'}
+    >>> find_root_node(all_nodes, downstream_nodes)
+    ['A']
+    """
+    if ignore_nodes is None:
+        ignore_nodes = []
+    if root_node is not None:
+        return [root_node]
+    return [node for node in all_nodes if node not in downstream_nodes and node not in ignore_nodes]
+
+def find_all_paths(
+    graph: Dict[str, List[str]],
+    start_node: str,
+    ignore_nodes: Optional[List[str]] = None
+) -> List[List[str]]:
+    """
+    Find all possible acyclic paths starting from a given node in a directed graph.
+
+    Parameters
+    ----------
+    graph : Dict[str, List[str]]
+        The adjacency list representation of the graph.
+    start_node : str
+        The node from which to start searching for paths.
+    ignore_nodes : Optional[List[str]], optional
+        A list of node names to ignore during traversal. Defaults to None.
+
+    Returns
+    -------
+    List[List[str]]
+        A list of paths, where each path is a list of node names (strings) from the start_node to a destination node.
+        Each path has at least two nodes (start and destination).
+
+    Notes
+    -----
+    - Cycles are avoided: a node is not revisited in the same path.
+    - Nodes in ignore_nodes are not included in any path.
+
+    Examples
+    --------
+    >>> graph = {'A': ['B', 'C'], 'B': ['C'], 'C': []}
+    >>> find_all_paths(graph, 'A')
+    [['A', 'B'], ['A', 'B', 'C'], ['A', 'C']]
+    """
+    if ignore_nodes is None:
+        ignore_nodes = []
+    paths = []
+
+    def dfs(current_node, current_path):
+        if current_node in ignore_nodes:
+            return
+        new_path = current_path + [current_node]
+        if len(new_path) > 1:
+            paths.append(new_path)
+        for neighbor in graph.get(current_node, []):
+            if neighbor not in new_path and neighbor not in ignore_nodes:
+                dfs(neighbor, new_path)
+    dfs(start_node, [])
+    return paths
+
+def group_paths_by_destination(
+    edges: list,
+    ignore_nodes: list = ["core_metadata_collection"],
+    root_node: Optional[str] = None
+) -> Dict[str, List[PathInfo]]:
+    """
+    Find and group all possible acyclic paths in a directed graph by their destination node.
+
+    For each destination node, all unique paths from any root node (or a specified root_node) to that destination
+    are collected, ignoring any nodes in ignore_nodes.
+
+    Parameters
+    ----------
+    edges : list of tuple
+        List of (upstream, downstream) node pairs representing the directed edges of the graph.
+    ignore_nodes : list, optional
+        List of node names to ignore in the graph and in path traversal. Defaults to ["core_metadata_collection"].
+    root_node : Optional[str], optional
+        If provided, only paths starting from this node are considered as root paths.
+
+    Returns
+    -------
+    Dict[str, List[PathInfo]]
+        A dictionary mapping each destination node name to a list of PathInfo objects,
+        each representing a unique path from a root node to that destination.
+
+    Examples
+    --------
+    >>> edges = [('A', 'B'), ('B', 'C')]
+    >>> group_paths_by_destination(edges)
+    {'B': [PathInfo(path=['A', 'B'], steps=1)], 'C': [PathInfo(path=['A', 'B', 'C'], steps=2)]}
+    """
+    graph, all_nodes, downstream_nodes = build_graph(edges, ignore_nodes)
+    root_nodes = find_root_node(all_nodes, downstream_nodes, ignore_nodes, root_node)
+    print("Graph root node(s):", root_nodes)
+
+    structured_results = defaultdict(list)
+    for node in root_nodes:
+        if node not in ignore_nodes:
+            all_paths = find_all_paths(graph, node, ignore_nodes)
+            for path in all_paths:
+                destination_node = path[-1]
+                path_info = PathInfo(path=path, steps=len(path) - 1)
+                structured_results[destination_node].append(path_info)
+    return dict(structured_results)
+
+def get_min_node_path(
+    edges: list,
+    target_node: str,
+    ignore_nodes: list = ["core_metadata_collection"],
+    root_node: Optional[str] = None
+) -> PathInfo:
+    """
+    Find the shortest path from a root node (or specified root_node) to a target node in a directed graph.
+
+    Parameters
+    ----------
+    edges : list of tuple
+        List of (upstream, downstream) node pairs representing the directed edges of the graph.
+    target_node : str
+        The destination node for which the shortest path is sought.
+    ignore_nodes : list, optional
+        List of node names to ignore in the graph and in path traversal. Defaults to ["core_metadata_collection"].
+    root_node : Optional[str], optional
+        If provided, only paths starting from this node are considered as root paths.
+
+    Returns
+    -------
+    PathInfo
+        The PathInfo object representing the shortest path from a root node to the target_node.
+
+    Raises
+    ------
+    ValueError
+        If no path exists from any root node to the target_node.
+
+    Examples
+    --------
+    >>> edges = [('A', 'B'), ('B', 'C')]
+    >>> get_min_node_path(edges, 'C')
+    PathInfo(path=['A', 'B', 'C'], steps=2)
+    """
+    graph, all_nodes, downstream_nodes = build_graph(edges, ignore_nodes)
+    root_nodes = find_root_node(all_nodes, downstream_nodes, ignore_nodes, root_node)
+    all_paths_by_dest = group_paths_by_destination(edges, ignore_nodes=ignore_nodes, root_node=root_node)
+    all_paths = all_paths_by_dest.get(target_node, [])
+    root_paths = [p for p in all_paths if p.path and p.path[0] in root_nodes]
+    if not root_paths:
+        raise ValueError(f"No path from any root node to {target_node}")
+    return min(root_paths, key=lambda path: path.steps)

@@ -3,6 +3,7 @@ import json
 from gen3_validator.dict import DataDictionary
 from unittest.mock import patch, MagicMock, mock_open
 import os
+from gen3_validator.dict import *
 
 
 @pytest.fixture
@@ -317,12 +318,11 @@ def test_parse_schema_sets_attributes(tmp_path):
     schema_path.write_text(json.dumps(schema_content))
 
     dd = DataDictionary(str(schema_path))
-    dd.nodes = ["subject.yaml", "sample.yaml"]  # Needed for split_json
-
     dd.parse_schema()
 
     # Check that schema and schema_list are set correctly
     assert dd.schema == schema_content
+    assert set(dd.nodes) == {"subject.yaml", "sample.yaml"}
     assert isinstance(dd.schema_list, list)
     assert {"id": "subject", "type": "object"} in dd.schema_list
     assert {"id": "sample", "type": "object"} in dd.schema_list
@@ -365,3 +365,64 @@ def test_calculate_node_order_sets_attributes():
     # Check that node_pairs and node_order are set correctly
     assert dd.node_pairs == [("project", "subject"), ("subject", "sample")]
     assert dd.node_order == ["project", "subject", "sample"]
+
+
+
+@pytest.fixture
+def fixture_node_edges():
+    edges = [
+        ("project", "subject"),
+        ("subject", "sample"),
+    ]
+    return edges
+
+def test_build_graph(fixture_node_edges):
+    expected_graph = {
+        "project": ["subject"],
+        "subject": ["sample"]
+    }
+    expected_all_nodes = {"project", "subject", "sample"}
+    expected_downstream_nodes = {"subject", "sample"}
+    graph, all_nodes, downstream_nodes = build_graph(fixture_node_edges)
+    assert isinstance(graph, dict)
+    assert graph == expected_graph
+    assert all_nodes == expected_all_nodes
+    assert downstream_nodes == expected_downstream_nodes
+
+def test_find_root_node(fixture_node_edges):
+    _, all_nodes, downstream_nodes = build_graph(fixture_node_edges)
+    expected_roots = ["project"]
+    roots = find_root_node(all_nodes, downstream_nodes)
+    assert roots == expected_roots
+
+def test_find_all_paths(fixture_node_edges):
+    graph, _, _ = build_graph(fixture_node_edges)
+    expected_paths = [
+        ["project", "subject"],
+        ["project", "subject", "sample"]
+    ]
+    all_paths = find_all_paths(graph, "project")
+    assert sorted(all_paths) == sorted(expected_paths)
+
+def test_group_paths_by_destination(fixture_node_edges):
+    expected = {
+        "subject": [PathInfo(path=["project", "subject"], steps=1)],
+        "sample": [PathInfo(path=["project", "subject", "sample"], steps=2)]
+    }
+    results = group_paths_by_destination(fixture_node_edges, ignore_nodes=[])
+    # Compare keys
+    assert set(results.keys()) == set(expected.keys())
+    # Compare PathInfo objects for each destination
+    for dest in expected:
+        expected_paths = expected[dest]
+        result_paths = results[dest]
+        assert len(result_paths) == len(expected_paths)
+        for exp, res in zip(expected_paths, result_paths):
+            assert exp.path == res.path
+            assert exp.steps == res.steps
+
+def test_get_min_node_path(fixture_node_edges):
+    expected_min_path = PathInfo(path=["project", "subject", "sample"], steps=2)
+    min_path = get_min_node_path(fixture_node_edges, "sample", ignore_nodes=[])
+    assert min_path.path == expected_min_path.path
+    assert min_path.steps == expected_min_path.steps
