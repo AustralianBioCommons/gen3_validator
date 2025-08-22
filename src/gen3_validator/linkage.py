@@ -12,10 +12,8 @@ class Linkage:
         """
         Initializes the Linkage class with injected dependencies.
 
-        Args:
-            root_node (list[str], optional): List of root node names. These are
-                entities that are allowed to have unmatched foreign keys.
-                Defaults to ['subject'].
+        :param root_node: List of root node names. These are entities that are allowed to have unmatched foreign keys. Defaults to ['subject'].
+        :type root_node: list[str], optional
         """
         if root_node is None:
             root_node = ['subject']
@@ -31,11 +29,11 @@ class Linkage:
         and checks if any value is a dictionary containing a 'submitter_id' key. If such
         a dictionary is found, the corresponding key is returned as the foreign key.
 
-        Args:
-            data (dict): A dictionary representing a single data record.
+        :param data: A dictionary representing a single data record.
+        :type data: dict
 
-        Returns:
-            str: The key corresponding to the foreign key if found, otherwise None.
+        :return: The key corresponding to the foreign key if found, otherwise None.
+        :rtype: str
         """
         for key, value in data.items():
             if isinstance(value, dict) and 'submitter_id' in value:
@@ -54,13 +52,13 @@ class Linkage:
         suffix. The foreign key is determined by searching for a key in the data that
         contains a 'submitter_id'.
 
-        Args:
-            data_map (dict): A dictionary where each key is an entity name and the value
-                is a list of data records for that entity.
-            link_suffix (str, optional): A suffix to append to the primary key. Defaults to 's'.
+        :param data_map: A dictionary where each key is an entity name and the value is a list of data records for that entity.
+        :type data_map: dict
+        :param link_suffix: A suffix to append to the primary key. Defaults to 's'.
+        :type link_suffix: str, optional
 
-        Returns:
-            dict: A configuration dictionary with primary and foreign keys for each entity.
+        :return: A configuration dictionary with primary and foreign keys for each entity.
+        :rtype: dict
         """
         config = {}
         logger.info("Generating config for data_map entities.")
@@ -90,20 +88,16 @@ class Linkage:
         not a root node, it records the broken link. Root nodes are allowed to have
         unmatched foreign keys.
 
-        Args:
-            config_map (Dict[str, Any]): A dictionary containing the configuration of entities,
-                where each key is an entity name and the value is a dictionary with 'primary_key'
-                and 'foreign_key'.
-            root_node (List[str], optional): A list of root node names that are allowed to have
-                unmatched foreign keys. Defaults to ['subject'].
+        :param config_map: A dictionary containing the configuration of entities, where each key is an entity name and the value is a dictionary with 'primary_key' and 'foreign_key'.
+        :type config_map: Dict[str, Any]
+        :param root_node: A list of root node names that are allowed to have unmatched foreign keys. Defaults to ['subject'].
+        :type root_node: List[str], optional
 
-        Returns:
-            dict: A dictionary of entities with broken links and their foreign keys if any are found.
-                  Returns "valid" if no broken links are detected.
+        :return: A dictionary of entities with broken links and their foreign keys if any are found. Returns "valid" if no broken links are detected.
+        :rtype: dict
 
-        Raises:
-            KeyError: If a required key ('primary_key' or 'foreign_key') is missing in the config for any entity.
-            TypeError: If config_map is not a dictionary or its values are not dictionaries.
+        :raises KeyError: If a required key ('primary_key' or 'foreign_key') is missing in the config for any entity.
+        :raises TypeError: If config_map is not a dictionary or its values are not dictionaries.
         """
         if root_node is None:
             root_node = ['subject']
@@ -191,34 +185,27 @@ class Linkage:
         Extracts all foreign key values for each entity from the provided data map,
         using the foreign key field specified in the config for each entity.
 
-        Args:
-            data_map (Dict[str, List[Dict[str, Any]]]):
-                A dictionary where each key is an entity name (e.g., "sample", "subject"),
-                and each value is a list of records (dictionaries) for that entity.
-                Each record should contain the foreign key field as specified in the config.
-            config (Dict[str, Any]):
-                A dictionary where each key is an entity name, and each value is a dictionary
-                containing at least the key 'foreign_key', which specifies the field name
-                in the records to use as the foreign key.
+        :param data_map: A dictionary where each key is an entity name (e.g., "sample", "subject"), and each value is a list of records (dictionaries) for that entity. Each record should contain the foreign key field as specified in the config.
+        :type data_map: Dict[str, List[Dict[str, Any]]]
+        :param config: A dictionary where each key is an entity name, and each value is a dictionary containing at least the key 'foreign_key', which specifies the field name in the records to use as the foreign key.
+        :type config: Dict[str, Any]
 
-        Returns:
-            Dict[str, List[Any]]:
-                A dictionary mapping each entity name to a list of extracted foreign key values.
-                If an entity has no foreign key specified in the config, its value will be an empty list.
+        :return: A dictionary mapping each entity name to a list of extracted foreign key values. If an entity has no foreign key specified in the config, its value will be an empty list.
+        :rtype: Dict[str, List[Any]]
 
-        Raises:
-            KeyError:
-                If an entity specified in the config is missing from the data_map.
-            Exception:
-                If an unexpected error occurs during extraction for any entity.
+        :raises KeyError: If an entity specified in the config is missing from the data_map.
+        :raises Exception: If an unexpected error occurs during extraction for any entity.
 
-        Notes:
+        .. note::
             - If a record's foreign key field is missing, that record is skipped with a warning.
             - If the foreign key value is a dictionary containing a 'submitter_id', that value is used.
             - Otherwise, the value of the foreign key field is used directly.
             - If the foreign key field is None in the config, extraction is skipped for that entity.
 
-        Example:
+        **Example:**
+
+        .. code-block:: python
+
             data_map = {
                 "sample": [
                     {"subjects": {"submitter_id": "subject_1"}, ...},
@@ -291,34 +278,27 @@ class Linkage:
         Extracts all primary key values for each entity from the provided data map,
         using the primary key field specified in the config for each entity.
 
-        Args:
-            data_map (Dict[str, List[Dict[str, Any]]]):
-                A dictionary where each key is an entity name (e.g., "sample", "subject"),
-                and each value is a list of records (dictionaries) for that entity.
-                Each record should contain the primary key field as specified in the config.
-            config (Dict[str, Any]):
-                A dictionary where each key is an entity name, and each value is a dictionary
-                containing at least the key 'primary_key', which specifies the field name
-                in the records to use as the primary key.
+        :param data_map: A dictionary where each key is an entity name (e.g., "sample", "subject"), and each value is a list of records (dictionaries) for that entity. Each record should contain the primary key field as specified in the config.
+        :type data_map: Dict[str, List[Dict[str, Any]]]
+        :param config: A dictionary where each key is an entity name, and each value is a dictionary containing at least the key 'primary_key', which specifies the field name in the records to use as the primary key.
+        :type config: Dict[str, Any]
 
-        Returns:
-            Dict[str, List[Any]]:
-                A dictionary mapping each entity name to a list of extracted primary key values.
-                If an entity has no primary key specified in the config, its value will be an empty list.
+        :return: A dictionary mapping each entity name to a list of extracted primary key values. If an entity has no primary key specified in the config, its value will be an empty list.
+        :rtype: Dict[str, List[Any]]
 
-        Raises:
-            KeyError:
-                If an entity specified in the config is missing from the data_map.
-            Exception:
-                If an unexpected error occurs during extraction for any entity.
+        :raises KeyError: If an entity specified in the config is missing from the data_map.
+        :raises Exception: If an unexpected error occurs during extraction for any entity.
 
-        Notes:
+        .. note::
             - If a record's primary key field is missing, that record is skipped with a warning.
             - If the primary key value is a dictionary containing a 'submitter_id', that value is used.
             - Otherwise, the value of the primary key field is used directly.
             - If the primary key field is None in the config, extraction is skipped for that entity.
 
-        Example:
+        **Example:**
+
+        .. code-block:: python
+
             data_map = {
                 "subject": [
                     {"subjects": "subject_1", ...},
@@ -398,16 +378,15 @@ class Linkage:
         primary key values of any entity. Returns a dictionary mapping each entity to
         a list of invalid (unmatched) foreign key values.
 
-        Args:
-            data_map (Dict[str, List[Dict[str, Any]]]): Contains the data for
-                each entity
-            config (Dict[str, Any]): The entity linkage configx
-            root_node (List[str], optional): List of root node names that are allowed to have
-                unmatched foreign keys. Defaults to ['subject'].
+        :param data_map: Contains the data for each entity.
+        :type data_map: Dict[str, List[Dict[str, Any]]]
+        :param config: The entity linkage configx.
+        :type config: Dict[str, Any]
+        :param root_node: List of root node names that are allowed to have unmatched foreign keys. Defaults to ['subject'].
+        :type root_node: List[str], optional
 
-        Returns:
-            Dict[str, List[str]]: Dictionary of entities and their validation
-                results. If the config is invalid, returns the config validation result.
+        :return: Dictionary of entities and their validation results. If the config is invalid, returns the config validation result.
+        :rtype: Dict[str, List[str]]
         """
         if root_node is None:
             root_node = ['subject']

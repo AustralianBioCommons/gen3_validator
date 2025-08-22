@@ -21,7 +21,7 @@ def ResolveSchema_instance(test_schema_path):
 
 def test_read_json(ResolveSchema_instance, test_schema_path):
     mock_data = [{"submitter_id": "subject-example-990910001"}]
-    with patch("gen3_validator.resolve_schema.open",
+    with patch("gen3_validator.dict.open",
                mock_open(read_data=json.dumps(mock_data))):
         result = ResolveSchema_instance.read_json(test_schema_path)
         assert result == mock_data
@@ -145,7 +145,7 @@ def test_find_upstream_downstream(ResolveSchema_instance):
         }
     }
     ResolveSchema_instance.schema = schema
-    node_pairs = ResolveSchema_instance.find_upstream_downstream("sample.yaml")
+    node_pairs = ResolveSchema_instance._find_upstream_downstream("sample.yaml")
     assert node_pairs == [("subject", "sample")]
 
 def test_get_all_node_pairs(ResolveSchema_instance):
