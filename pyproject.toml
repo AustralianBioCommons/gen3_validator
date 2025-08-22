@@ -16,7 +16,9 @@ dependencies = [
     "typing >=3.7.4.3",
     "pytest >=8.3.4",
     "uuid >=1.30",
-    "pyfakefs >=4.7.0"
+    "pyfakefs >=4.7.0",
+    "sphinx",
+    "shibuya"
 ]
 
 [build-system]
