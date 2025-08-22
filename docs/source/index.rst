@@ -13,7 +13,7 @@ With this tool, you can:
 
 ----------------------
 
-Getting Started.
+Getting Started:
 --------------
 
 **Installation:**
