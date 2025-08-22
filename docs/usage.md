@@ -9,34 +9,63 @@ setup_logging()
 
 
 ```python
-# ResolverClass = gen3_validator.ResolveSchema(schema_path = "../schema/gen3_test_schema.json")
-xlsxData = gen3_validator.ParseXlsxMetadata(xlsx_path = "/Users/harrijh/projects/gen3-data-validator/data/lipid_metadata_example.xlsx", skip_rows=1)
-xlsxData.parse_metadata_template()
-xlsxData.write_dict_to_json(xlsx_data_dict=xlsxData.xlsx_data_dict, output_dir="/Users/harrijh/projects/gen3-data-validator/data/restricted/lipid_metadata_example")
+# resolverClass = gen3_validator.ResolveSchema(schema_path = "../schema/gen3_test_schema.json")
+xlsxData = gen3_validator.ParseXlsxMetadata(xlsx_path = "gen3-validator/data/lipid_metadata_example.xlsx", skip_rows=1)
+xlsxdata.parse_metadata_template()
+xlsxdata.write_dict_to_json(xlsx_data_dict=xlsxdata.xlsx_data_dict, output_dir="gen3-validator/data/restricted/lipid_metadata_example")
 ```
 
-## Creating Resolver Instance
-- This class reads in the gen3schema.json then resolves the schema for use in the other classes
+## Creating a Dictionary Instance
+The `DataDictionary` class in `dict.py` provides tools to:
 
+-  Reads a bundled json file which is a list of gen3 jsonschemas and load its contents with `read_json()`.
+- Retrieve all node names (entities) defined in the schema using `get_nodes()`.
+- Extract links for a node with `get_node_link()`, categories with `get_node_category()`, and properties with `get_node_properties()`.
+- Generate a lookup dictionary of nodes with their categories and properties via `generate_node_lookup()`.
+- Find upstream and downstream relationships between nodes using `_find_upstream_downstream()`.
+- Get all node dependency pairs with `get_all_node_pairs()` and determine a topological order for data loading using `get_node_order()`.
+- Split the schema into individual node schemas with `split_json()`.
+- Retrieve a specific node schema by its ID using `return_schema()`.
+- Convert a list of node schemas into a dictionary format with `schema_list_to_json()`.
+- Extract the schema version from the loaded schema using `get_schema_version()`.
+- Call orchestration methods like `parse_schema()` and `calculate_node_order()`, to populate internal class attributes for the `DataDictionary` class.
+
+*Note: A node is defined as the entity name*
+
+```python
+# initialise
+dd = gen3_validator.DataDictionary(schema_path = "../tests/schema/gen3_test_schema.json")
+
+# Call the orchestration method
+dd.parse_schema()
+dd.schema
+dd.schema_list
+
+# Call the node orchestration method
+dd.calculate_node_order()
+dd.nodes
+dd.node_pairs
+dd.node_order
+```
+
+
+
+## Creating resolver Instance
+- This class inherits methods from the `DataDictionary` class and provides tools to resolve the schema and return the resolved schema
 
 
 ```python
-Resolver = gen3_validator.ResolveSchema(schema_path = "../tests/schema/gen3_test_schema.json")
-Resolver.resolve_schema()
-```
-
-
-```python
-# you can check the graph nodes in the resolved schema with 
-Resolver.nodes
+resolver = gen3_validator.ResolveSchema(schema_path = "../tests/schema/gen3_test_schema.json")
+resolver.resolve_schema()
 ```
 
 You can return the resolved schema with
 
 
 ```python
-Resolver.schema_resolved
+resolver.schema_resolved
 ```
+
 
 ## Parsing data
 - The parse data class takes in a data folder path containing json files for each data node
@@ -45,21 +74,21 @@ Resolver.schema_resolved
 
 ```python
 # Testing linkage for test data that passes
-Data = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
+data = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
 ```
 
 To list the files read into the Data instance, you can use the following code:
 
 
 ```python
-Data.file_path_list
+data.file_path_list
 ```
 
-All of the read data is stored in Data.data_dict as a dictionary, where the key is the entity and the value is a list of json objects
+All of the read data is stored in data.data_dict as a dictionary, where the key is the entity and the value is a list of json objects
 
 
 ```python
-Data.data_dict
+data.data_dict
 ```
 
 The default link suffix is 's'
@@ -67,7 +96,7 @@ The default link suffix is 's'
 
 
 ```python
-Data.link_suffix
+data.link_suffix
 ```
 
 For example, in the json object below, we can see that the key "subjects" is what describes the link from sample to subject, since the value of 'subjects' is an array containing the key "submitter_id".
@@ -76,14 +105,14 @@ For example, in the json object below, we can see that the key "subjects" is wha
 
 
 ```python
-Data.data_dict["sample"][0]
+data.data_dict["sample"][0]
 ```
 
 Finally, you can also check what the detected entities are below:
 
 
 ```python
-Data.data_nodes
+data.data_nodes
 ```
 
 ## Testing Linkage
@@ -106,9 +135,9 @@ Also, you can define the linkage configuration map yourself, but you need to mak
 
 ```python
 import gen3_validator
-DataPass = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
-LinkagePass = gen3_validator.Linkage()
-link_pass_config = LinkagePass.generate_config(DataPass.data_dict)
+data_pass = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
+linkage_pass = gen3_validator.Linkage()
+link_pass_config = linkage_pass.generate_config(data_pass.data_dict)
 link_pass_config
 ```
 
@@ -141,10 +170,10 @@ Where `entity_name_1` and `entity_name_2` are the names of the entities in the d
 
 ```python
 import gen3_validator
-DataPass = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
-LinkagePass = gen3_validator.Linkage()
-link_pass_config = LinkagePass.generate_config(DataPass.data_dict)
-LinkagePass.validate_links(data_map = DataPass.data_dict, config = link_pass_config, root_node = 'subject')
+data_pass = gen3_validator.ParseData(data_folder_path = "../tests/data/pass")
+linkage_pass = gen3_validator.Linkage()
+link_pass_config = linkage_pass.generate_config(data_pass.data_dict)
+linkage_pass.validate_links(data_map = data_pass.data_dict, config = link_pass_config, root_node = 'subject')
 ```
 
 Testing linkage for test data that fails:
@@ -152,24 +181,24 @@ Testing linkage for test data that fails:
 
 
 ```python
-DataFail = gen3_validator.ParseData(data_folder_path = "../tests/data/fail")
-LinkageFail = gen3_validator.Linkage()
-link_fail_config = LinkageFail.generate_config(DataFail.data_dict)
-LinkageFail.validate_links(data_map = DataFail.data_dict, config = link_fail_config, root_node = 'subject')
+data_fail = gen3_validator.ParseData(data_folder_path = "../tests/data/fail")
+linkage_fail = gen3_validator.Linkage()
+link_fail_config = linkage_fail.generate_config(data_fail.data_dict)
+linkage_fail.validate_links(data_map = data_fail.data_dict, config = link_fail_config, root_node = 'subject')
 ```
 
-You can check the json files read into the DataFail instance
+You can check the json files read into the data_fail instance
 
 
 ```python
-DataFail.file_path_list
+data_fail.file_path_list
 ```
 
 This returns all of the foreign keys that are not linked to a primary key
 
 
 ```python
-LinkageFail.link_validation_results
+linkage_fail.link_validation_results
 ```
 
 # Data Validation
@@ -401,7 +430,7 @@ data = gen3_validator.ParseData(data_folder_path = "../tests/data/fail")
 validator = gen3_validator.Validate(data_map=data.data_dict, resolved_schema=resolver.schema_resolved)
 validator.validate_schema() # make sure validation has been run by calling .validate_schema()
 
-Summary = gen3_validator.ValidateSummary(validator) 
+summary = gen3_validator.ValidateSummary(validator) 
 
 ```
 
@@ -409,19 +438,19 @@ This returns the validation results in a flattened dictionary format.
 
 
 ```python
-Summary.flatten_validation_results()
+summary.flatten_validation_results()
 ```
 
 This returns the validation results in a flattened pandas dataframe.
 
 
 ```python
-Summary.flattened_results_to_pd()
+summary.flattened_results_to_pd()
 ```
 
 Finally you can also create an aggreated summary of the flattened validation results with:
 
 
 ```python
-Summary.collapse_flatten_results_to_pd()
+summary.collapse_flatten_results_to_pd()
 ```
