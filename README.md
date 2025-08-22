@@ -10,7 +10,8 @@ With this tool, you can:
 - **Parse Excel-based metadata templates** and convert them to JSON for Gen3 ingestion.
 - **Get detailed validation results and summary stats** as Python data structures or pandas DataFrames, making it easy to integrate with your own scripts or reporting tools.
 
-## Usage Documentation:** 
+
+## Usage Documentation
 See the [usage](https://github.com/AustralianBioCommons/gen3_validator/blob/main/docs/usage.md) page for more information.
 
 - I recommend you clone this repo, and walk through the examples in the [usage](docs/usage.md) page. The usage examples load data from the `tests/data` directory so you can see how the data is structured.
@@ -39,12 +40,6 @@ poetry install
 pytest -vv tests/
 ```
 ---
-
-
-
-## Class Documentation
-
-See the [classes](docs/classes.md) page for more information.
 
 ## License
 
