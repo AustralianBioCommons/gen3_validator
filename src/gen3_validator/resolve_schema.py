@@ -9,35 +9,28 @@ logger = logging.getLogger(__name__)
 class ResolveSchema(DataDictionary):
     def __init__(self, schema_path: str):
         """
-        Initialize the ResolveSchema class.
+        Initialize the ResolveSchema class, inheriting from DataDictionary.
 
-        Parameters:
-        - schema_path (str): The path to the JSON schema file.
+        :param schema_path: The path to the JSON schema file.
+        :type schema_path: str
         """
         super().__init__(schema_path)
         logger.info(f"Initializing ResolveSchema with schema path: {schema_path}")
-        self.schema = None
-        self.nodes = None
-        self.schema_list = None
-        self.schema_def = None
-        self.schema_term = None
         self.schema_def_resolved = None
         self.schema_list_resolved = None
         self.schema_resolved = None
-        self.schema_version = None
 
     def resolve_references(self, schema: dict, reference: dict) -> dict:
         """
-        Takes a gen3 jsonschema draft 4 as a dictionary and recursively
-        resolves any references using a reference schema which has no
-        references.
+        Recursively resolve all ``$ref`` references in a Gen3 JSON schema draft 4 node,
+        using a reference schema that contains no references.
 
-        Parameters:
-        - schema (dict): The JSON node to resolve references in.
-        - reference (dict): The schema containing the references.
-
-        Returns:
-        - dict: The resolved JSON node with references resolved.
+        :param schema: The JSON node to resolve references in.
+        :type schema: dict
+        :param reference: The schema containing the reference definitions.
+        :type reference: dict
+        :return: The resolved JSON node with all references resolved.
+        :rtype: dict
         """
         logger.info("Resolving references in schema.")
         ref_input_content = reference
@@ -51,7 +44,8 @@ class ResolveSchema(DataDictionary):
                         ref_file = ref_file.strip()
                         ref_key = ref_key.strip("/")
 
-                        # if a reference file is in the reference, load the pre-defined reference, if no file exists, then use the schema itself as reference
+                        # If a reference file is in the reference, load the pre-defined reference;
+                        # if no file exists, then use the schema itself as reference.
                         if ref_file:
                             ref_content = manual_ref_content
                         else:
@@ -83,16 +77,16 @@ class ResolveSchema(DataDictionary):
 
     def resolve_all_references(self) -> list:
         """
-        Resolves references in all other schema dictionaries using the resolved definitions schema.
+        Resolve references in all schema node dictionaries using the resolved definitions schema.
 
-        Returns:
-        - list: A list of resolved schema dictionaries.
+        :return: A list of resolved schema dictionaries, one for each node.
+        :rtype: list
         """
         logger.info("Resolving all references in schema list.")
         logger.info("=== Resolving Schema References ===")
 
         resolved_schema_list = []
-        for node in self.nodes:
+        for node in self.get_nodes():
             if node == "_definitions.yaml" or node == "_terms.yaml":
                 continue
 
@@ -109,39 +103,14 @@ class ResolveSchema(DataDictionary):
 
         return resolved_schema_list
 
-    def schema_list_to_json(self, schema_list: list) -> dict:
-        """
-        Converts a list of JSON schemas to a dictionary where each key is the schema id
-        with '.yaml' appended, and the value is the schema content.
-
-        Parameters:
-        - schema_list (list): A list of JSON schemas.
-
-        Returns:
-        - dict: A dictionary with schema ids as keys and schema contents as values.
-        """
-        logger.info("Converting schema list to JSON format.")
-        try:
-            schema_dict = {}
-            for schema in schema_list:
-                schema_id = schema.get("id")
-                if schema_id:
-                    schema_dict[f"{schema_id}.yaml"] = schema
-            return schema_dict
-        except Exception as e:
-            logger.error(f"Error converting schema list to JSON: {e}")
-            raise
-        
-    # INSERT_YOUR_CODE
     def return_resolved_schema(self, schema_id: str) -> dict:
         """
-        Retrieves the first dictionary from the resolved schema list where the 'id' key matches the schema_id.
+        Retrieve the first dictionary from the resolved schema list where the ``id`` key matches ``schema_id``.
 
-        Parameters:
-        - schema_id (str): The value of the 'id' key to match.
-
-        Returns:
-        - dict: The dictionary that matches the schema_id, or None if not found.
+        :param schema_id: The value of the ``id`` key to match. May include or omit the ``.yaml`` extension.
+        :type schema_id: str
+        :return: The dictionary that matches the schema_id, or None if not found.
+        :rtype: dict or None
         """
         logger.info(f"Retrieving resolved schema for schema ID: {schema_id}")
         try:
@@ -160,18 +129,24 @@ class ResolveSchema(DataDictionary):
 
     def resolve_schema(self):
         """
-        Resolves and initializes all schema-related attributes for the instance.
+        Resolve and initialize all schema-related attributes for the instance.
+
         This method reads the schema, extracts nodes and their relationships,
-        splits and resolves references, and sets the schema version.
+        splits and resolves references, and sets the schema version. The following
+        attributes are set on the instance:
+
+        - ``self.schema``: The raw schema dictionary loaded from file.
+        - ``self.schema_list``: List of individual node schemas.
+        - ``self.schema_def``: The definitions schema.
+        - ``self.schema_term``: The terms schema.
+        - ``self.schema_def_resolved``: The resolved definitions schema.
+        - ``self.schema_list_resolved``: List of resolved node schemas.
+        - ``self.schema_resolved``: The resolved schema in JSON format.
         """
         logger.info("Starting schema resolution process.")
         # Step 1: Read the main schema JSON
         self.schema = self.read_json(self.schema_path)
         logger.info("Successfully read JSON schema.")
-
-        # Step 2: Extract node information
-        self.nodes = self.get_nodes()
-        logger.info(f"Retrieved {len(self.nodes)} nodes from schema.")
 
         # Step 4: Split schema into individual node schemas
         self.schema_list = self.split_json()
