@@ -16,24 +16,16 @@ class Validate:
     using the Draft4Validator from the jsonschema library. It provides methods to validate individual
     objects, manage validation results, and create key mappings for further processing.
 
-    Attributes:
-        data_map (dict): A dictionary of the data objects, where they key is the entity name, 
+    :ivar dict data_map: A dictionary of the data objects, where the key is the entity name, 
         and the value is a list of json objects e.g. {'sample': [{id: 1, name: 'sample1'}, {id: 2, name: 'sample2'}]}
-        resolved_schema (dict): The resolved gen3 JSON schema to validate against. 
-    Methods:
-        __init__(data_map, resolved_schema):
-            Initializes the Validate class with the provided data and schema, performs validation,
-            and creates a key map.
+    :ivar dict resolved_schema: The resolved gen3 JSON schema to validate against.
 
-        validate_object(obj, idx, validator) -> list:
-            Validates a single JSON object against a provided JSON schema validator and returns
-            a list of validation results.
+    **Methods:**
 
-        validate_schema(data_map, resolved_schema):
-            Validates the entire data_map against the resolved_schema and returns the results.
-
-        make_keymap():
-            Generates a mapping of keys from the data_map for reference and lookup.
+    - __init__(data_map, resolved_schema): Initializes the Validate class with the provided data and schema, performs validation, and creates a key map.
+    - validate_object(obj, idx, validator): Validates a single JSON object against a provided JSON schema validator and returns a list of validation results.
+    - validate_schema(data_map, resolved_schema): Validates the entire data_map against the resolved_schema and returns the results.
+    - make_keymap(): Generates a mapping of keys from the data_map for reference and lookup.
     """
     def __init__(self, data_map, resolved_schema):
         if data_map is None:
@@ -53,13 +45,12 @@ class Validate:
         """
         Validates a single JSON object against a provided JSON schema validator.
 
-        Parameters:
-        - obj (dict): The JSON object to validate.
-        - idx (int): The index of the object in the dataset.
-        - validator (Draft4Validator): The JSON schema validator to use for validation.
+        :param dict obj: The JSON object to validate.
+        :param int idx: The index of the object in the dataset.
+        :param Draft4Validator validator: The JSON schema validator to use for validation.
 
-        Returns:
-        - list: A list of dictionaries containing validation results and log messages.
+        :returns: A list of dictionaries containing validation results and log messages.
+        :rtype: list
         """
         validation_results = []
         try:
@@ -102,8 +93,8 @@ class Validate:
         """
         Validates the data in self.data_map against the schemas in self.resolved_schema.
 
-        Returns:
-        - dict: A dictionary containing validation results for each entity.
+        :returns: A dictionary containing validation results for each entity.
+        :rtype: dict
         """
         validation_results = {}
 
@@ -149,8 +140,8 @@ class Validate:
         """
         Lists all entities present in the validation results.
 
-        Returns:
-            list: A list of entity names.
+        :returns: A list of entity names.
+        :rtype: list
         """
         try:
             entities = list(self.validation_result.keys())
@@ -164,11 +155,10 @@ class Validate:
         """
         Lists all index keys for a specified entity.
 
-        Args:
-            entity (str): The name of the entity to list index keys for.
+        :param str entity: The name of the entity to list index keys for.
 
-        Returns:
-            list: A list of index keys for the specified entity.
+        :returns: A list of index keys for the specified entity.
+        :rtype: list
         """
         index_list = []
         try:
@@ -183,8 +173,8 @@ class Validate:
         """
         Creates a dictionary that maps entities to their corresponding index keys.
 
-        Returns:
-            dict: A dictionary where each key is an entity name and each value is a list of index keys for that entity.
+        :returns: A dictionary where each key is an entity name and each value is a list of index keys for that entity.
+        :rtype: dict
         """
         try:
             entities = self.list_entities()
@@ -202,12 +192,11 @@ class Validate:
         """
         Retrieves the validation results for a specified entity.
 
-        Args:
-            entity (str): The name of the entity to retrieve validation results for.
-            result_type (str, optional): The type of validation result to return. Either ["PASS", "FAIL", "ALL"]
+        :param str entity: The name of the entity to retrieve validation results for.
+        :param str result_type: The type of validation result to return. Either ["PASS", "FAIL", "ALL"]. Default is "FAIL".
 
-        Returns:
-            list: A list of validation results for the specified entity, or None if no results are found.
+        :returns: A list of validation results for the specified entity, or None if no results are found.
+        :rtype: list
         """
         return_objects = []
         try:
@@ -235,17 +224,15 @@ class Validate:
         """
         Retrieves the validation result for a specified entity and index key.
 
-        Args:
-            entity (str): The name of the entity to retrieve validation results for.
-            index_key (int): The index key of the validation result to retrieve.
-            result_type (str, optional): The type of validation result to return. Either ["PASS", "FAIL", "ALL"]
-            return_failed (bool, optional): Flag to determine if only failed results should be returned.
+        :param str entity: The name of the entity to retrieve validation results for.
+        :param int index_key: The index key of the validation result to retrieve.
+        :param str result_type: The type of validation result to return. Either ["PASS", "FAIL", "ALL"]. Default is "FAIL".
+        :param bool return_failed: Flag to determine if only failed results should be returned. Default is True.
 
-        Returns:
-            list: List of objects containing each validation result for the specified entity and index 
+        :returns: List of objects containing each validation result for the specified entity and index 
             key, or None if not found. Each element in the list corresponds to a validation result
             for a specific property, while the index corresponds to the entry.
-
+        :rtype: list
         """
         try:
             logger.debug(f"Retrieving validation results for entity: {entity}")
@@ -310,11 +297,10 @@ class ValidateStats(Validate):
         """
         Returns the number of rows that have validation errors for a given entity.
 
-        Args:
-            entity (str): The name of the entity to check for validation errors.
+        :param str entity: The name of the entity to check for validation errors.
 
-        Returns:
-            int: The number of rows with validation errors.
+        :returns: The number of rows with validation errors.
+        :rtype: int
         """
         try:
             n_rows = len(self.pull_entity(entity))
@@ -331,14 +317,13 @@ class ValidateStats(Validate):
         5 validation errors due to errors in 5 columns for that row. So the method will return
         5 validation errors.
 
-        Args:
-            entity (str): The name of the entity to count validation results for.
-            index_key (int): The key/index to count validation results for.
-            result_type (str, optional): The type of validation result to count. Either ["PASS", "FAIL", "ALL"]
-            print_results (bool, optional): Flag to print the results.
+        :param str entity: The name of the entity to count validation results for.
+        :param int index_key: The key/index to count validation results for.
+        :param str result_type: The type of validation result to count. Either ["PASS", "FAIL", "ALL"]. Default is "FAIL".
+        :param bool print_results: Flag to print the results. Default is False.
 
-        Returns:
-            int: The number of validation results for the specified key/index.
+        :returns: The number of validation results for the specified key/index.
+        :rtype: int
         """
         validation_count = 0
         val_result = None
@@ -368,13 +353,12 @@ class ValidateStats(Validate):
         example, one entry, in 'sample' may result in 5 validation errors. This function counts
         the total number of validation errors for a whole entity.
 
-        Args:
-            entity (str): The name of the entity to count failed validation results for.
-            result_type (str, optional): The type of validation result to count. Either ["PASS", "FAIL", "ALL"]
-            print_results (bool, optional): Flag to print the results.
+        :param str entity: The name of the entity to count failed validation results for.
+        :param str result_type: The type of validation result to count. Either ["PASS", "FAIL", "ALL"]. Default is "FAIL".
+        :param bool print_results: Flag to print the results. Default is False.
 
-        Returns:
-            int: The number of failed validation results for the specified entity.
+        :returns: The number of failed validation results for the specified entity.
+        :rtype: int
         """
         validation_count = 0
         try:
@@ -396,12 +380,11 @@ class ValidateStats(Validate):
         """
         Returns the number of validation errors for a given entity and index.
 
-        Args:
-            entity (str): The name of the entity to check for validation errors.
-            index_key (int): The index of the row to check for validation errors.
+        :param str entity: The name of the entity to check for validation errors.
+        :param int index_key: The index of the row to check for validation errors.
 
-        Returns:
-            int: The number of validation errors for the given entity and index.
+        :returns: The number of validation errors for the given entity and index.
+        :rtype: int
         """
         try:
             n_errors = len(self.pull_index_of_entity(entity, index_key))
@@ -415,8 +398,8 @@ class ValidateStats(Validate):
         """
         Calculates the total number of validation errors across all entities.
 
-        Returns:
-            int: The total number of validation errors.
+        :returns: The total number of validation errors.
+        :rtype: int
         """
         error_count = 0
         try:
@@ -438,9 +421,9 @@ class ValidateStats(Validate):
         with errors and the total number of errors per entity. The results are printed
         to the console and returned as a pandas DataFrame.
 
-        Returns:
-            pd.DataFrame: A DataFrame containing the summary statistics with columns
+        :returns: A DataFrame containing the summary statistics with columns
             'entity', 'number_of_rows_with_errors', and 'number_of_errors_per_entity'.
+        :rtype: pandas.DataFrame
         """
         import pandas as pd
 
@@ -485,12 +468,11 @@ class ValidateSummary(Validate):
         particular entity, row, and column, where one row can produce validation errors 
         in multiple columns.
 
-        Args:
-            result_type (str): The type of validation result to filter by, default is "FAIL".
+        :param str result_type: The type of validation result to filter by, default is "FAIL".
 
-        Returns:
-            dict: A dictionary containing flattened validation results with a unique GUID 
+        :returns: A dictionary containing flattened validation results with a unique GUID 
             for each entry, along with the entity and other relevant validation details.
+        :rtype: dict
         """
         try:
             key_map = self.make_keymap()
@@ -524,9 +506,9 @@ class ValidateSummary(Validate):
         and converts them into a pandas DataFrame. The DataFrame is then sorted by 
         'entity' and 'row' for organized analysis or processing.
 
-        Returns:
-            pd.DataFrame: A DataFrame containing the sorted and indexed flattened 
+        :returns: A DataFrame containing the sorted and indexed flattened 
             validation results.
+        :rtype: pandas.DataFrame
         """
         try:
             logger.info("Converting flattened results to pandas dataframe...")
@@ -550,9 +532,9 @@ class ValidateSummary(Validate):
         aggregates other columns to provide a summary of the validation errors, including
         the count of occurrences for each error type.
 
-        Returns:
-            pd.DataFrame: A DataFrame containing the collapsed summary of validation errors,
+        :returns: A DataFrame containing the collapsed summary of validation errors,
             sorted by entity, validation error, and count.
+        :rtype: pandas.DataFrame
         """
         try:
             logger.info("Collapsing flattened results to pandas dataframe...")

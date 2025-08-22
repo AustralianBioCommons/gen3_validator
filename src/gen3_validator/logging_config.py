@@ -6,15 +6,9 @@ def setup_logging(level="INFO", output_dir="../logs"):
     """
     Set up logging configuration for the application.
 
-    Args:
-        level (str): The logging level to use. 
-            Acceptable values are "INFO", "DEBUG", "WARN", and "ERROR".
-            Defaults to "INFO".
-        output_dir (str): Directory where log files will be saved.
-            Defaults to "../logs".
-
-    Raises:
-        ValueError: If an invalid logging level is provided.
+    :param str level: The logging level to use. Acceptable values are "INFO", "DEBUG", "WARN", and "ERROR". Defaults to "INFO".
+    :param str output_dir: Directory where log files will be saved. Defaults to "../logs".
+    :raises ValueError: If an invalid logging level is provided.
 
     This function configures the root logger to write logs to a file in the specified output directory,
     with the filename based on the current date and time. The log format includes the timestamp,

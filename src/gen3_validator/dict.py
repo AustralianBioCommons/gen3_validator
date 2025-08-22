@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 class DataDictionary:
     def __init__(self, schema_path: str):
         """
-        Initialize the DataDictionary class. Provides
-        methods to extract gen3 jsonschema information
+        Initialize the DataDictionary class.
 
-        Parameters:
-        - schema_path (str): The path to the JSON file
-            which contains a list of gen3 jsonschema
+        Provides methods to extract gen3 jsonschema information.
+
+        :param schema_path: The path to the JSON file which contains a list of gen3 jsonschema.
+        :type schema_path: str
         """
         self.schema_path = schema_path
         logger.info(f"Initializing DataDictionary with schema path: {schema_path}")
@@ -28,11 +28,11 @@ class DataDictionary:
         """
         Read a JSON file and return its contents as a dictionary.
 
-        Parameters:
-        - path (str): The path to the JSON file.
+        :param path: The path to the JSON file.
+        :type path: str
 
-        Returns:
-        - dict: The contents of the JSON file.
+        :return: The contents of the JSON file.
+        :rtype: dict
         """
         logger.info(f"Reading JSON file from path: {path}")
         try:
@@ -52,8 +52,8 @@ class DataDictionary:
         """
         Retrieve all node names from the schema.
 
-        Returns:
-        - list: A list of node names.
+        :return: A list of node names.
+        :rtype: list
         """
         logger.info("Retrieving node names from schema.")
         try:
@@ -67,11 +67,11 @@ class DataDictionary:
         """
         Retrieve the links and ID for a given node.
 
-        Parameters:
-        - node_name (str): The name of the node.
+        :param node_name: The name of the node.
+        :type node_name: str
 
-        Returns:
-        - tuple: A tuple containing the node ID and its links.
+        :return: A tuple containing the node ID and its links.
+        :rtype: tuple
         """
         logger.info(f"Retrieving links and ID for node: {node_name}")
         try:
@@ -92,11 +92,11 @@ class DataDictionary:
         """
         Retrieve the category and ID for a given node, excluding certain nodes.
 
-        Parameters:
-        - node_name (str): The name of the node.
+        :param node_name: The name of the node.
+        :type node_name: str
 
-        Returns:
-        - tuple: A tuple containing the node ID and its category, or None if the node is excluded.
+        :return: A tuple containing the node ID and its category, or None if the node is excluded.
+        :rtype: tuple
         """
         logger.info(f"Retrieving category and ID for node: {node_name}")
         try:
@@ -114,11 +114,11 @@ class DataDictionary:
         """
         Retrieve the properties for a given node.
 
-        Parameters:
-        - node_name (str): The name of the node.
+        :param node_name: The name of the node.
+        :type node_name: str
 
-        Returns:
-        - tuple: A tuple containing the node ID and its properties.
+        :return: A tuple containing the node ID and its properties.
+        :rtype: tuple
         """
         logger.info(f"Retrieving properties for node: {node_name}")
         try:
@@ -137,6 +137,12 @@ class DataDictionary:
             raise
 
     def generate_node_lookup(self) -> dict:
+        """
+        Generate a lookup dictionary for nodes, mapping node names to their categories and properties.
+
+        :return: A dictionary mapping node names to their category and properties.
+        :rtype: dict
+        """
         logger.info("Generating node lookup dictionary.")
         node_lookup = {}
         excluded_nodes = [
@@ -166,11 +172,11 @@ class DataDictionary:
         """
         Takes a node name and returns the upstream and downstream nodes.
 
-        Parameters:
-        - node_name (str): The name of the node.
+        :param node_name: The name of the node.
+        :type node_name: str
 
-        Returns:
-        - list: A list of tuples representing upstream and downstream nodes.
+        :return: A list of tuples representing upstream and downstream nodes.
+        :rtype: list
         """
         logger.info(f"Finding upstream and downstream nodes for: {node_name}")
         try:
@@ -209,11 +215,11 @@ class DataDictionary:
         """
         Retrieve all node pairs, excluding specified nodes.
 
-        Parameters:
-        - excluded_nodes (list): A list of node names to exclude.
+        :param excluded_nodes: A list of node names to exclude.
+        :type excluded_nodes: list
 
-        Returns:
-        - list: A list of node pairs.
+        :return: A list of node pairs.
+        :rtype: list
         """
         logger.info("Retrieving all node pairs, excluding specified nodes.")
         node_pairs = []
@@ -230,11 +236,11 @@ class DataDictionary:
         """
         Determine the order of nodes based on their dependencies.
 
-        Parameters:
-        - edges (list): A list of tuples, where each tuple is a
-            node pair (upstream, downstream).
-        Returns:
-        - list: A list of nodes in topological order.
+        :param edges: A list of tuples, where each tuple is a node pair (upstream, downstream).
+        :type edges: list
+
+        :return: A list of nodes in topological order.
+        :rtype: list
         """
         logger.info("Determining node order based on dependencies.")
         try:
@@ -275,8 +281,8 @@ class DataDictionary:
         """
         Split the schema into a list of individual node schemas.
 
-        Returns:
-        - list: A list of node schemas.
+        :return: A list of node schemas.
+        :rtype: list
         """
         logger.info("Splitting schema into individual node schemas.")
         try:
@@ -290,13 +296,13 @@ class DataDictionary:
 
     def return_schema(self, schema_id: str) -> dict:
         """
-        Retrieves the first dictionary from a list where the 'id' key matches the schema_id.
+        Retrieve the first dictionary from a list where the 'id' key matches the schema_id.
 
-        Parameters:
-        - schema_id (str): The value of the 'id' key to match.
+        :param schema_id: The value of the 'id' key to match.
+        :type schema_id: str
 
-        Returns:
-        - dict: The dictionary that matches the schema_id, or None if not found.
+        :return: The dictionary that matches the schema_id, or None if not found.
+        :rtype: dict
         """
         logger.info(f"Retrieving schema for schema ID: {schema_id}")
         try:
@@ -315,14 +321,14 @@ class DataDictionary:
 
     def schema_list_to_json(self, schema_list: list) -> dict:
         """
-        Converts a list of JSON schemas to a dictionary where each key is the schema id
+        Convert a list of JSON schemas to a dictionary where each key is the schema id
         with '.yaml' appended, and the value is the schema content.
 
-        Parameters:
-        - schema_list (list): A list of gen3 JSON schemas.
+        :param schema_list: A list of gen3 JSON schemas.
+        :type schema_list: list
 
-        Returns:
-        - dict: A dictionary with schema ids as keys and schema contents as values.
+        :return: A dictionary with schema ids as keys and schema contents as values.
+        :rtype: dict
         """
         logger.info("Converting schema list to JSON format.")
         try:
@@ -338,13 +344,13 @@ class DataDictionary:
 
     def get_schema_version(self, schema: dict) -> str:
         """
-        Extracts the version of the schema from the provided schema dictionary.
+        Extract the version of the schema from the provided schema dictionary.
 
-        Parameters:
-        - schema (dict): The schema dictionary from which to extract the version.
+        :param schema: The schema dictionary from which to extract the version.
+        :type schema: dict
 
-        Returns:
-        - str: The version of the schema.
+        :return: The version of the schema.
+        :rtype: str
         """
         try:
             version = schema['_settings.yaml']['_dict_version']
@@ -355,11 +361,10 @@ class DataDictionary:
 
     def parse_schema(self):
         """
-        Reads the list of gen3 jsonschema,
-        Then splits it into individual node schemas.
-        Data is stored in self.schema and self.schema_list
-        """
+        Read the list of gen3 jsonschema, then split it into individual node schemas.
 
+        Data is stored in :attr:`self.schema` and :attr:`self.schema_list`.
+        """
         self.schema = self.read_json(self.schema_path)
         logger.info("Successfully read JSON schema.")
 
@@ -368,8 +373,7 @@ class DataDictionary:
 
     def calculate_node_order(self):
         """
-        Calls the methods to get node information,
-        node pairs, and node order
+        Call the methods to get node information, node pairs, and node order.
         """
         self.nodes = self.get_nodes()
         logger.info(f"Retrieved {len(self.nodes)} nodes from schema.")
