@@ -2,9 +2,11 @@ import json
 from collections import defaultdict, deque
 import logging
 
+from gen3_validator.dict import DataDictionary
+
 logger = logging.getLogger(__name__)
 
-class ResolveSchema:
+class ResolveSchema(DataDictionary):
     def __init__(self, schema_path: str):
         """
         Initialize the ResolveSchema class.
@@ -12,7 +14,7 @@ class ResolveSchema:
         Parameters:
         - schema_path (str): The path to the JSON schema file.
         """
-        self.schema_path = schema_path
+        super().__init__(schema_path)
         logger.info(f"Initializing ResolveSchema with schema path: {schema_path}")
         self.schema = None
         self.nodes = None
@@ -25,118 +27,6 @@ class ResolveSchema:
         self.schema_list_resolved = None
         self.schema_resolved = None
         self.schema_version = None
-
-    def read_json(self, path: str) -> dict:
-        """
-        Read a JSON file and return its contents as a dictionary.
-
-        Parameters:
-        - path (str): The path to the JSON file.
-
-        Returns:
-        - dict: The contents of the JSON file.
-        """
-        logger.info(f"Reading JSON file from path: {path}")
-        try:
-            with open(path) as f:
-                return json.load(f)
-        except FileNotFoundError:
-            logger.error(f"JSON file not found: {path}")
-            raise
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding JSON from file {path}: {e}")
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error reading JSON file {path}: {e}")
-            raise
-
-    def get_nodes(self) -> list:
-        """
-        Retrieve all node names from the schema.
-
-        Returns:
-        - list: A list of node names.
-        """
-        logger.info("Retrieving node names from schema.")
-        try:
-            nodes = list(self.schema.keys())
-            return nodes
-        except Exception as e:
-            logger.error(f"Error retrieving nodes from schema: {e}")
-            raise
-
-    def get_node_link(self, node_name: str) -> tuple:
-        """
-        Retrieve the links and ID for a given node.
-
-        Parameters:
-        - node_name (str): The name of the node.
-
-        Returns:
-        - tuple: A tuple containing the node ID and its links.
-        """
-        logger.info(f"Retrieving links and ID for node: {node_name}")
-        try:
-            links = self.schema[node_name]["links"]
-            node_id = self.schema[node_name]["id"]
-            if "subgroup" in links[0]:
-                return node_id, links[0]["subgroup"]
-            else:
-                return node_id, links
-        except KeyError as e:
-            logger.error(f"Missing key {e} in node {node_name}")
-            raise
-        except Exception as e:
-            logger.error(f"Error retrieving node link for {node_name}: {e}")
-            raise
-
-    def get_node_category(self, node_name: str) -> tuple:
-        """
-        Retrieve the category and ID for a given node, excluding certain nodes.
-
-        Parameters:
-        - node_name (str): The name of the node.
-
-        Returns:
-        - tuple: A tuple containing the node ID and its category, or None if the node is excluded.
-        """
-        logger.info(f"Retrieving category and ID for node: {node_name}")
-        try:
-            category = self.schema[node_name]["category"]
-            node_id = self.schema[node_name]["id"]
-            return node_id, category
-        except KeyError as e:
-            logger.error(f"Missing key {e} in node {node_name}")
-            raise
-        except Exception as e:
-            logger.error(f"Error retrieving node category for {node_name}: {e}")
-            raise
-
-    def get_node_properties(self, node_name: str) -> tuple:
-        """
-        Retrieve the properties for a given node.
-
-        Parameters:
-        - node_name (str): The name of the node.
-
-        Returns:
-        - tuple: A tuple containing the node ID and its properties.
-        """
-        logger.info(f"Retrieving properties for node: {node_name}")
-        try:
-            properties = {
-                k: v for k, v in self.schema[node_name]["properties"].items()
-                if k != "$ref"
-            }
-            property_keys = list(properties.keys())
-            node_id = self.schema[node_name]["id"]
-            return node_id, property_keys
-        except KeyError as e:
-            logger.error(f"Missing key {e} in node {node_name}")
-            raise
-        except Exception as e:
-            logger.error(f"Error retrieving node properties for {node_name}: {e}")
-            raise
 
     def generate_node_lookup(self) -> dict:
         logger.info("Generating node lookup dictionary.")
@@ -163,157 +53,6 @@ class ResolveSchema:
                 logger.error(f"Error generating node lookup for {node}: {e}")
                 continue
         return node_lookup
-
-    def find_upstream_downstream(self, node_name: str) -> list:
-        """
-        Takes a node name and returns the upstream and downstream nodes.
-
-        Parameters:
-        - node_name (str): The name of the node.
-
-        Returns:
-        - list: A list of tuples representing upstream and downstream nodes.
-        """
-        logger.info(f"Finding upstream and downstream nodes for: {node_name}")
-        try:
-            node_id, links = self.get_node_link(node_name)
-
-            # Ensure links is a list
-            if isinstance(links, dict):
-                links = [links]
-
-            results = []
-
-            for link in links:
-                target_type = link.get("target_type")
-
-                if not node_id or not target_type:
-                    logger.warning(f"Missing essential keys in link: {link}")
-                    results.append((None, None))
-                    continue
-
-                results.append((target_type, node_id))
-
-            return results
-        except Exception as e:
-            logger.error(f"Error finding upstream/downstream for {node_name}: {e}")
-            raise
-
-    def get_all_node_pairs(
-        self,
-        excluded_nodes=[
-            "_definitions.yaml",
-            "_terms.yaml",
-            "_settings.yaml",
-            "program.yaml",
-        ],
-    ) -> list:
-        """
-        Retrieve all node pairs, excluding specified nodes.
-
-        Parameters:
-        - excluded_nodes (list): A list of node names to exclude.
-
-        Returns:
-        - list: A list of node pairs.
-        """
-        logger.info("Retrieving all node pairs, excluding specified nodes.")
-        node_pairs = []
-        for node in self.nodes:
-            if node not in excluded_nodes:
-                try:
-                    node_pairs.extend(self.find_upstream_downstream(node))
-                except Exception as e:
-                    logger.error(f"Error retrieving node pairs for {node}: {e}")
-                    continue
-        return node_pairs
-
-    def get_node_order(self, edges: list) -> list:
-        """
-        Determine the order of nodes based on their dependencies.
-
-        Parameters:
-        - edges (list): A list of tuples representing node dependencies.
-
-        Returns:
-        - list: A list of nodes in topological order.
-        """
-        logger.info("Determining node order based on dependencies.")
-        try:
-            # Build graph representation
-            graph = defaultdict(list)
-            in_degree = defaultdict(int)
-
-            for upstream, downstream in edges:
-                graph[upstream].append(downstream)
-                in_degree[downstream] += 1
-                if upstream not in in_degree:
-                    in_degree[upstream] = 0
-
-            # Perform Topological Sorting (Kahn's Algorithm)
-            sorted_order = []
-            zero_in_degree = deque([node for node in in_degree if in_degree[node] == 0])
-
-            while zero_in_degree:
-                node = zero_in_degree.popleft()
-                sorted_order.append(node)
-
-                for neighbor in graph[node]:
-                    in_degree[neighbor] -= 1
-                    if in_degree[neighbor] == 0:
-                        zero_in_degree.append(neighbor)
-
-            # Ensure core_metadata_collection is last
-            if "core_metadata_collection" in sorted_order:
-                sorted_order.remove("core_metadata_collection")
-                sorted_order.append("core_metadata_collection")
-
-            return sorted_order
-        except Exception as e:
-            logger.error(f"Error determining node order: {e}")
-            raise
-
-    def split_json(self) -> list:
-        """
-        Split the schema into a list of individual node schemas.
-
-        Returns:
-        - list: A list of node schemas.
-        """
-        logger.info("Splitting schema into individual node schemas.")
-        try:
-            schema_list = []
-            for node in self.nodes:
-                schema_list.append(self.schema[node])
-            return schema_list
-        except Exception as e:
-            logger.error(f"Error splitting JSON schema: {e}")
-            raise
-
-    def return_schema(self, target_id: str) -> dict:
-        """
-        Retrieves the first dictionary from a list where the 'id' key matches the target_id.
-
-        Parameters:
-        - target_id (str): The value of the 'id' key to match.
-
-        Returns:
-        - dict: The dictionary that matches the target_id, or None if not found.
-        """
-        logger.info(f"Retrieving schema for target ID: {target_id}")
-        try:
-            if target_id.endswith(".yaml"):
-                target_id = target_id[:-5]
-
-            result = next(
-                (item for item in self.schema_list if item.get("id") == target_id), None
-            )
-            if result is None:
-                logger.warning(f"{target_id} not found in schema list")
-            return result
-        except Exception as e:
-            logger.error(f"Error retrieving schema for {target_id}: {e}")
-            raise
 
     def resolve_references(self, schema: dict, reference: dict) -> dict:
         """
@@ -370,29 +109,6 @@ class ResolveSchema:
 
         return resolve_node(schema)
 
-    def schema_list_to_json(self, schema_list: list) -> dict:
-        """
-        Converts a list of JSON schemas to a dictionary where each key is the schema id
-        with '.yaml' appended, and the value is the schema content.
-
-        Parameters:
-        - schema_list (list): A list of JSON schemas.
-
-        Returns:
-        - dict: A dictionary with schema ids as keys and schema contents as values.
-        """
-        logger.info("Converting schema list to JSON format.")
-        try:
-            schema_dict = {}
-            for schema in schema_list:
-                schema_id = schema.get("id")
-                if schema_id:
-                    schema_dict[f"{schema_id}.yaml"] = schema
-            return schema_dict
-        except Exception as e:
-            logger.error(f"Error converting schema list to JSON: {e}")
-            raise
-
     def resolve_all_references(self) -> list:
         """
         Resolves references in all other schema dictionaries using the resolved definitions schema.
@@ -421,47 +137,53 @@ class ResolveSchema:
 
         return resolved_schema_list
 
-    def return_resolved_schema(self, target_id: str) -> dict:
+    def schema_list_to_json(self, schema_list: list) -> dict:
         """
-        Retrieves the first dictionary from a list where the 'id' key matches the target_id.
+        Converts a list of JSON schemas to a dictionary where each key is the schema id
+        with '.yaml' appended, and the value is the schema content.
 
         Parameters:
-        - target_id (str): The value of the 'id' key to match.
+        - schema_list (list): A list of JSON schemas.
 
         Returns:
-        - dict: The dictionary that matches the target_id, or None if not found.
+        - dict: A dictionary with schema ids as keys and schema contents as values.
         """
-        logger.info(f"Retrieving resolved schema for target ID: {target_id}")
+        logger.info("Converting schema list to JSON format.")
         try:
-            if target_id.endswith(".yaml"):
-                target_id = target_id[:-5]
+            schema_dict = {}
+            for schema in schema_list:
+                schema_id = schema.get("id")
+                if schema_id:
+                    schema_dict[f"{schema_id}.yaml"] = schema
+            return schema_dict
+        except Exception as e:
+            logger.error(f"Error converting schema list to JSON: {e}")
+            raise
+        
+    # INSERT_YOUR_CODE
+    def return_resolved_schema(self, schema_id: str) -> dict:
+        """
+        Retrieves the first dictionary from the resolved schema list where the 'id' key matches the schema_id.
+
+        Parameters:
+        - schema_id (str): The value of the 'id' key to match.
+
+        Returns:
+        - dict: The dictionary that matches the schema_id, or None if not found.
+        """
+        logger.info(f"Retrieving resolved schema for schema ID: {schema_id}")
+        try:
+            if schema_id.endswith(".yaml"):
+                schema_id = schema_id[:-5]
 
             result = next(
-                (item for item in self.schema_list_resolved if item.get("id") == target_id),
-                None,
+                (item for item in self.schema_list_resolved if item.get("id") == schema_id), None
             )
             if result is None:
-                logger.warning(f"{target_id} not found in resolved schema list")
+                logger.warning(f"{schema_id} not found in resolved schema list")
             return result
         except Exception as e:
-            logger.error(f"Error retrieving resolved schema for {target_id}: {e}")
-            raise
-
-    def get_schema_version(self, schema: dict) -> str:
-        """
-        Extracts the version of the schema from the provided schema dictionary.
-
-        Parameters:
-        - schema (dict): The schema dictionary from which to extract the version.
-
-        Returns:
-        - str: The version of the schema.
-        """
-        try:
-            version = schema['_settings.yaml']['_dict_version']
-            return version
-        except Exception as e:
-            logger.error(f"Could not pull schema version {e}")
+            logger.error(f"Error retrieving resolved schema for {schema_id}: {e}")
             raise
 
     def resolve_schema(self):
