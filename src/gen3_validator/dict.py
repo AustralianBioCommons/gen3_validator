@@ -315,7 +315,7 @@ class DataDictionary:
                 (item for item in self.schema_list if item.get("id") == schema_id), None
             )
             if result is None:
-                logger.warning(f"{schema_id} not found in schema list")
+                logger.error(f"{schema_id} not found in schema list")
             return result
         except Exception as e:
             logger.error(f"Error retrieving schema for {schema_id}: {e}")
