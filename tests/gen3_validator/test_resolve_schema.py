@@ -152,9 +152,7 @@ def test_return_resolved_schema(ResolveSchema_instance):
     none_schema = ResolveSchema_instance.return_resolved_schema("not_a_node.yaml")
     assert none_schema is None
 
-
-def test_resolve_schema(monkeypatch, ResolveSchema_instance):
-    # Prepare a mock schema dict with all required keys
+def test_resolve_schema(ResolveSchema_instance, monkeypatch):
     schema = {
         "_settings.yaml": {
             "_dict_version": "3.1.0"
@@ -188,32 +186,24 @@ def test_resolve_schema(monkeypatch, ResolveSchema_instance):
             }
         }
     }
+    # the resolve schema list will not have _definitions.yaml and _terms.yaml
+    schema_res = schema.copy()
+    schema_res.pop("_definitions.yaml", None)
+    schema_res.pop("_terms.yaml", None)
+    schema_list = list(schema_res.values())
 
-    # Patch read_json to return our schema
-    monkeypatch.setattr(ResolveSchema_instance, "read_json", lambda path: schema)
-    # Patch get_nodes to return the node keys
-    monkeypatch.setattr(ResolveSchema_instance, "get_nodes", lambda: list(schema.keys()))
+    resolver = ResolveSchema_instance
+    monkeypatch.setattr(resolver, "read_json", lambda path: schema)
+    resolver.resolve_schema()
 
-    # Patch split_json to return a list of node dicts (excluding _definitions.yaml and _terms.yaml)
-    def fake_split_json():
-        return [schema[k] for k in schema if k.endswith(".yaml") and not k.startswith("_")]
-
-    monkeypatch.setattr(ResolveSchema_instance, "split_json", fake_split_json)
-    # Patch return_schema to return the relevant dict
-    monkeypatch.setattr(ResolveSchema_instance, "return_schema", lambda k: schema.get(k))
-    # Patch resolve_references to just return the input schema for simplicity
-    monkeypatch.setattr(ResolveSchema_instance, "resolve_references", lambda s, t: s)
-    # Patch convert resolved schema list to json format
-    monkeypatch.setattr(ResolveSchema_instance, "schema_list_to_json", lambda s: s)
-    # Now call resolve_schema
-    ResolveSchema_instance.resolve_schema()
-
-    # Check that the attributes are set as expected
-    assert ResolveSchema_instance.schema == schema
-    assert isinstance(ResolveSchema_instance.schema_list, list)
-    assert ResolveSchema_instance.schema_def == schema["_definitions.yaml"]
-    assert ResolveSchema_instance.schema_term == schema["_terms.yaml"]
-    assert ResolveSchema_instance.schema_def_resolved == schema["_definitions.yaml"]
-    assert isinstance(ResolveSchema_instance.schema_list_resolved, list)
-    assert ResolveSchema_instance.schema_resolved == ResolveSchema_instance.schema_list_resolved
-
+    assert resolver.schema == schema
+    assert isinstance(resolver.schema_list, list)
+    assert resolver.nodes == list(schema.keys())
+    assert resolver.schema_def is None
+    assert resolver.schema_term is None
+    assert resolver.schema_list_resolved == schema_list
+    assert isinstance(resolver.schema_list_resolved, list)
+    assert isinstance(resolver.schema_resolved, dict)
+    assert "sample.yaml" in resolver.schema_resolved
+    assert "subject.yaml" in resolver.schema_resolved
+    
