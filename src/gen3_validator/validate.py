@@ -513,7 +513,7 @@ class ValidateSummary(Validate):
         try:
             logger.info("Converting flattened results to pandas dataframe...")
             if not self.flattened_validation_results:
-                logger.info("No flattened validation results found, returning empty DataFrame.")
+                logger.warn("No flattened validation results found, returning empty DataFrame.")
                 print("No validation errors found")
                 return pd.DataFrame()
             pd_df = pd.json_normalize(self.flattened_validation_results)
@@ -539,7 +539,7 @@ class ValidateSummary(Validate):
         try:
             logger.info("Collapsing flattened results to pandas dataframe...")
             if not self.flattened_validation_results:
-                logger.info("No flattened validation results found, returning empty DataFrame.")
+                logger.warn("No flattened validation results found, returning empty DataFrame.")
                 print("No validation errors found")
                 return pd.DataFrame()
             pd_df = pd.json_normalize(self.flattened_validation_results)
