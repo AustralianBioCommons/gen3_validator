@@ -11,14 +11,15 @@ requires-python = ">=3.9.5"
 dependencies = [
     "jsonschema >=4.23.0",
     "pandas >=2.2.3",
-    "numpy >=2.0.2",
+    "numpy >=1.26.0, <2.0.0",
     "pydantic >=2.10.6",
     "typing >=3.7.4.3",
     "pytest >=8.3.4",
     "uuid >=1.30",
     "pyfakefs >=4.7.0",
     "sphinx",
-    "shibuya"
+    "shibuya",
+    "pyyaml (>=6.0.3,<7.0.0)"
 ]
 
 [build-system]
