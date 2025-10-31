@@ -1,6 +1,6 @@
 [project]
 name = "gen3_validator"
-version = "1.1.1"
+version = "1.1.2"
 description = "Comprehensive toolkit for resolving Gen3 JSON schemas, validating JSON metadata against schemas, and verifying linkage integrity between data nodes. Includes utilities for parsing Excel metadata templates, generating linkage configuration maps, orchestrating schema validation, and producing detailed validation reports and statistics"
 authors = [
     {name = "JoshuaHarris391",email = "harjo391@gmail.com"}
@@ -19,7 +19,8 @@ dependencies = [
     "pyfakefs >=4.7.0",
     "sphinx",
     "shibuya",
-    "pyyaml (>=6.0.3,<7.0.0)"
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)"
 ]
 
 [build-system]
