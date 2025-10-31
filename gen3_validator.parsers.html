@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>gen3_validator.parsers package - gen3_validator 1.10 documentation</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="gen3_validator package" href="gen3_validator.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=d48c410d" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="gen3_validator.parsers package"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>gen3_validator</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="gen3_validator.html">gen3_validator package</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">gen3_validator.parsers package</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">gen3_validator.parsers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-gen3_validator.parsers.parse_data">gen3_validator.parsers.parse_data module</a><ul>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData"><code class="docutils literal notranslate"><span class="pre">ParseData</span></code></a><ul>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData.get_node_names"><code class="docutils literal notranslate">get_node_names()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData.list_data_files"><code class="docutils literal notranslate">list_data_files()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData.load_json_data"><code class="docutils literal notranslate">load_json_data()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData.read_json"><code class="docutils literal notranslate">read_json()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_data.ParseData.return_data"><code class="docutils literal notranslate">return_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-gen3_validator.parsers.parse_xlsx">gen3_validator.parsers.parse_xlsx module</a><ul>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata"><code class="docutils literal notranslate"><span class="pre">ParseXlsxMetadata</span></code></a><ul>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.xlsx_path"><code class="docutils literal notranslate">xlsx_path</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.link_suffix"><code class="docutils literal notranslate">link_suffix</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.format_pd_to_json"><code class="docutils literal notranslate">format_pd_to_json()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_pk_fk_pairs"><code class="docutils literal notranslate">get_pk_fk_pairs()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_sheet_names"><code class="docutils literal notranslate">get_sheet_names()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.parse_metadata_template"><code class="docutils literal notranslate">parse_metadata_template()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.pd_to_json"><code class="docutils literal notranslate">pd_to_json()</span></code></a></li>
+<li><a class="reference internal" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.write_dict_to_json"><code class="docutils literal notranslate">write_dict_to_json()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-gen3_validator.parsers">Module contents</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">gen3_validator</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="gen3_validator.html"><span itemprop="name">gen3_validator package</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">gen3_validator.parsers package</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="gen3-validator-parsers-package">
+<h1>gen3_validator.parsers package<a class="headerlink" href="#gen3-validator-parsers-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-gen3_validator.parsers.parse_data">
+<span id="gen3-validator-parsers-parse-data-module"></span><h2>gen3_validator.parsers.parse_data module<a class="headerlink" href="#module-gen3_validator.parsers.parse_data" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gen3_validator.parsers.parse_data.</span></span><span class="sig-name descname"><span class="pre">ParseData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_suffix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'s'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parses JSON data from a specified folder or a single file, and constructs a dictionary representation of the data.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData.get_node_names">
+<span class="sig-name descname"><span class="pre">get_node_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData.get_node_names" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves the names of nodes from the JSON files.</p>
+<p>This method iterates over the list of file paths and extracts the node names
+by removing the ‘.json’ extension from each file name.</p>
+<p>Returns:
+- list: A list of node names extracted from the JSON file paths.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData.list_data_files">
+<span class="sig-name descname"><span class="pre">list_data_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData.list_data_files" title="Link to this definition">¶</a></dt>
+<dd><p>Lists all JSON data files in the specified folder or returns the single file path.</p>
+<p>This method checks if a folder path is provided. If so, it lists all files in the folder
+that have a ‘.json’ extension and returns their absolute paths. If no folder path is provided,
+it returns the single file path specified during initialization.</p>
+<p>Returns:
+- list: A list of absolute file paths to JSON files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData.load_json_data">
+<span class="sig-name descname"><span class="pre">load_json_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_suffix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'s'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData.load_json_data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData.read_json">
+<span class="sig-name descname"><span class="pre">read_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData.read_json" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_data.ParseData.return_data">
+<span class="sig-name descname"><span class="pre">return_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_data.ParseData.return_data" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves data for a specified node.</p>
+<p>This method accesses the data dictionary and returns the data
+associated with the given node name.</p>
+<p>Parameters:
+- node (str): The name of the node for which data is to be retrieved.</p>
+<p>Returns:
+- dict: A dictionary containing the data for the specified node.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-gen3_validator.parsers.parse_xlsx">
+<span id="gen3-validator-parsers-parse-xlsx-module"></span><h2>gen3_validator.parsers.parse_xlsx module<a class="headerlink" href="#module-gen3_validator.parsers.parse_xlsx" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gen3_validator.parsers.parse_xlsx.</span></span><span class="sig-name descname"><span class="pre">ParseXlsxMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlsx_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_suffix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_rows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Converts a specified sheet from the metadata dictionary
+(generated by <a class="reference external" href="https://github.com/AustralianBioCommons/gen3-metadata-templates">https://github.com/AustralianBioCommons/gen3-metadata-templates</a>)
+to a JSON file. Also formats and renames the primary and foreign keys into a
+gen3 compatible format.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.xlsx_path">
+<span class="sig-name descname"><span class="pre">xlsx_path</span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.xlsx_path" title="Link to this definition">¶</a></dt>
+<dd><p>The path to the Excel file containing metadata templates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.link_suffix">
+<span class="sig-name descname"><span class="pre">link_suffix</span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.link_suffix" title="Link to this definition">¶</a></dt>
+<dd><p>A suffix to append to link identifiers, default is ‘s’.
+e.g. if you name your links as “nodeName_link” you may set this to “_link”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.format_pd_to_json">
+<span class="sig-name descname"><span class="pre">format_pd_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlsx_data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.format_pd_to_json" title="Link to this definition">¶</a></dt>
+<dd><p>formats the pandas data frame into a specific json format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlsx_data_dict</strong> (<em>dict</em>) – A dictionary where each key is a sheet name and each</p></li>
+<li><p><strong>DataFrame.</strong> (<em>value is a</em>)</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em>) – The name of the sheet to convert to JSON.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of json objects with specific key pair structure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_pk_fk_pairs">
+<span class="sig-name descname"><span class="pre">get_pk_fk_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlsx_data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_pk_fk_pairs" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts the primary key (PK) and foreign key (FK) column names from a
+specified sheet.</p>
+<p>This method retrieves the first two column names from the given sheet in
+the Excel data dictionary, assuming the first column is the primary key
+and the second column is the foreign key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlsx_data_dict</strong> (<em>dict</em>) – A dictionary where each key is a sheet name and</p></li>
+<li><p><strong>DataFrame.</strong> (<em>each value is a</em>)</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em>) – The name of the sheet from which to extract the PK and FK.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the primary key and foreign key column names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_sheet_names">
+<span class="sig-name descname"><span class="pre">get_sheet_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.get_sheet_names" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves the names of all sheets in the Excel file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of sheet names present in the Excel file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.parse_metadata_template">
+<span class="sig-name descname"><span class="pre">parse_metadata_template</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.parse_metadata_template" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an Excel file and converts each sheet into a DataFrame.</p>
+<p>This function reads an Excel file specified by the <cite>xlsx_path</cite> and loads
+each sheet into a dictionary where the keys are the sheet names and the
+values are the DataFrames representing the data in those sheets. The first
+few rows of each DataFrame are removed based on the <cite>skip_rows</cite> attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary where each key is a sheet name and each value is a
+DataFrame containing the data from that sheet, with the specified number
+of rows removed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.pd_to_json">
+<span class="sig-name descname"><span class="pre">pd_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlsx_data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.pd_to_json" title="Link to this definition">¶</a></dt>
+<dd><p>Writes a list of json objects to a json file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlsx_data_dict</strong> (<em>dict</em>) – A dictionary where each key is a sheet name and each</p></li>
+<li><p><strong>DataFrame.</strong> (<em>value is a</em>)</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em>) – The name of the sheet to convert to JSON.</p></li>
+<li><p><strong>json_path</strong> (<em>str</em>) – The path to the JSON file to be saved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.write_dict_to_json">
+<span class="sig-name descname"><span class="pre">write_dict_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlsx_data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#gen3_validator.parsers.parse_xlsx.ParseXlsxMetadata.write_dict_to_json" title="Link to this definition">¶</a></dt>
+<dd><p>Writes a dictionary of pandas DataFrames to JSON files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlsx_data_dict</strong> (<em>dict</em>) – The dictionary containing DataFrames to be written to JSON files.</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – The directory where JSON files will be created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-gen3_validator.parsers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gen3_validator.parsers" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="gen3_validator.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">gen3_validator package</div></div>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025, Joshua Harris</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=bed2af54"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/shibuya.js?v=e730760c"></script></body>
+</html>
