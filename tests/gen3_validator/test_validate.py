@@ -90,6 +90,7 @@ def test_resolved_schema_version(fixture_resolver_inst):
 def test_validate_json_pass(fixture_resolver_inst):
     data = [
         {
+            "submitter_id": "medical_history_7598b38ca0",
             "atrial_fibrillation": "yes",
             "cabg": "yes",
             "type": "medical_history"
@@ -97,16 +98,6 @@ def test_validate_json_pass(fixture_resolver_inst):
     ]
 
     expected = [
-        {
-            'node': 'medical_history',
-            'index': 0,
-            'validation_result': 'PASS',
-            'invalid_key': None,
-            'schema_path': None,
-            'validator': None,
-            'validator_value': None,
-            'validation_error': None
-        }
     ]
     resolved_schema = fixture_resolver_inst.schema_resolved
     result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
@@ -123,6 +114,16 @@ def test_validate_json_fail(fixture_resolver_inst):
     ]
 
     expected = [
+        {
+            'node': 'medical_history',
+            'index': 0,
+            'validation_result': 'FAIL',
+            'invalid_key': 'root',
+            'schema_path': 'required',
+            'validator': 'required',
+            'validator_value': ['submitter_id', 'type'],
+            'validation_error': "'submitter_id' is a required property"
+        },
         {
             'node': 'medical_history',
             'index': 0,
@@ -160,3 +161,30 @@ def test_missing_type_key(fixture_resolver_inst):
 
     with pytest.raises(Exception, match="Error in validate_list_dict during object validation at index 0, key 'type' not found in"):
         gen3_validator.validate.validate_list_dict(data, resolved_schema)
+
+
+def test_catch_agilent_error(fixture_resolver_inst):
+    """
+    This test aims to capture a real world error that was missed in version 1
+    """
+    data = [
+        {
+            "submitter_id": "lipidomics-assay-ausdiab-12-221-990940238_e91aef83bc5a85c37d2c8ddbb289de3ffc863bbb3489c650b3a10f13f1477895",
+            "type": "lipidomics_assay",
+            "assay_id": "AD12_250#12-221-990940238",
+            "assay_description": "Targeted mass spec lipidome",
+            "instrument_type": "Agilent QQQ LC-MS",
+            "samples": [
+                {
+                    "submitter_id": "sample-ausdiab-0441301_e91aef83bc5a85c37d2c8ddbb289de3ffc863bbb3489c650b3a10f13f1477895"
+                }
+            ]
+        }
+    ]
+    resolved_schema = fixture_resolver_inst.schema_resolved
+    result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
+
+    # Instead of relying on exact error string, check presence of expected values in the error message for robustness
+    error_msg = result[0]["validation_error"]
+    assert "'Agilent QQQ LC-MS'" in error_msg
+    assert "is not one of" in error_msg

@@ -32,26 +32,22 @@ def validate_object(obj: dict, idx: int, validator) -> list:
     
     if "type" in obj:
         node = obj["type"]
+        logger.debug(f"Validating object at index {idx} of type '{node}'.")
     else:
         node = None
+        logger.debug(f"Object at index {idx} missing 'type' key.")
 
-    if len(errors[1:]) == 0:
-        result = {
-            "node": node,
-            "index": idx,
-            "validation_result": "PASS",
-            "invalid_key": None,
-            "schema_path": None,
-            "validator": None,
-            "validator_value": None,
-            "validation_error": None
-        }
-        validation_results.append(result)
-    else:
-        for error in errors[1:]:
+    if errors:
+        logger.debug(f"Found {len(errors)} validation error(s) for object at index {idx} (type: '{node}').")
+        for error in errors:
             invalid_key = ".".join(str(k) for k in error.path) if error.path else "root"
             schema_path = ".".join(str(k) for k in error.schema_path)
-
+            logger.debug(
+                f"Validation error in object at index {idx}, node '{node}': "
+                f"invalid_key='{invalid_key}', schema_path='{schema_path}', "
+                f"validator='{error.validator}', validator_value='{error.validator_value}', "
+                f"error='{error.message}'"
+            )
             result = {
                 "node": node,
                 "index": idx,
@@ -63,6 +59,9 @@ def validate_object(obj: dict, idx: int, validator) -> list:
                 "validation_error": error.message
             }
             validation_results.append(result)
+
+    else:
+        logger.debug(f"No validation errors for object at index {idx} (type: '{node}').")
 
     return validation_results
 
