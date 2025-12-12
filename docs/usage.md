@@ -1,65 +1,6 @@
-```python
-import gen3_validator
-```
-
-## Creating a Dictionary Instance
-The `DataDictionary` class in `dict.py` provides tools to:
-
--  Reads a bundled json file which is a list of gen3 jsonschemas and load its contents with `read_json()`.
-- Retrieve all node names (entities) defined in the schema using `get_nodes()`.
-- Extract links for a node with `get_node_link()`, categories with `get_node_category()`, and properties with `get_node_properties()`.
-- Generate a lookup dictionary of nodes with their categories and properties via `generate_node_lookup()`.
-- Find upstream and downstream relationships between nodes using `_find_upstream_downstream()`.
-- Get all node dependency pairs with `get_all_node_pairs()` and determine a topological order for data loading using `get_node_order()`.
-- Split the schema into individual node schemas with `split_json()`.
-- Retrieve a specific node schema by its ID using `return_schema()`.
-- Convert a list of node schemas into a dictionary format with `schema_list_to_json()`.
-- Extract the schema version from the loaded schema using `get_schema_version()`.
-- Call orchestration methods like `parse_schema()` and `calculate_node_order()`, to populate internal class attributes for the `DataDictionary` class.
-
-*Note: A node is defined as the entity name*
-
-```python
-# initialise
-dd = gen3_validator.DataDictionary(schema_path = "../tests/schema/gen3_test_schema.json")
-
-# Call the orchestration method
-dd.parse_schema()
-dd.schema
-dd.schema_list
-
-# Call the node orchestration method
-dd.calculate_node_order()
-dd.nodes
-dd.node_pairs
-dd.node_order
-
-# You can also get a summary of node, node category, and the properties for each node wtih
-dd.generate_node_lookup()
-```
-
-
-
-## Creating resolver Instance
-- This class inherits methods from the `DataDictionary` class and provides tools to resolve the schema and return the resolved schema
-
-
-```python
-resolver = gen3_validator.ResolveSchema(schema_path = "../tests/schema/gen3_test_schema.json")
-resolver.resolve_schema()
-```
-
-You can return the resolved schema with
-
-
-```python
-resolver.schema_resolved
-```
-
-
 # Data Validation
 - Validating json data objects to the gen3jsonschema
-
+- To validate data, the gen3 jsonschema must first be resovled using the special software built into gen3_validator
 
 
 ```python
@@ -114,6 +55,74 @@ results = gen3_validator.validate.validate_list_dict(data, schema)
 print(results)
 ```
 
+Example output:
+
+```python
+[{'node': 'medical_history',
+  'index': 0,
+  'validation_result': 'FAIL',  
+  'invalid_key': 'root',
+  'schema_path': 'required',
+  'validator': 'required',
+  'validator_value': ['submitter_id', 'type'],
+  'validation_error': "'submitter_id' is a required property"}]
+```
+
+
+
+## Creating a Dictionary Instance
+The `DataDictionary` class in `dict.py` provides tools to:
+
+-  Reads a bundled json file which is a list of gen3 jsonschemas and load its contents with `read_json()`.
+- Retrieve all node names (entities) defined in the schema using `get_nodes()`.
+- Extract links for a node with `get_node_link()`, categories with `get_node_category()`, and properties with `get_node_properties()`.
+- Generate a lookup dictionary of nodes with their categories and properties via `generate_node_lookup()`.
+- Find upstream and downstream relationships between nodes using `_find_upstream_downstream()`.
+- Get all node dependency pairs with `get_all_node_pairs()` and determine a topological order for data loading using `get_node_order()`.
+- Split the schema into individual node schemas with `split_json()`.
+- Retrieve a specific node schema by its ID using `return_schema()`.
+- Convert a list of node schemas into a dictionary format with `schema_list_to_json()`.
+- Extract the schema version from the loaded schema using `get_schema_version()`.
+- Call orchestration methods like `parse_schema()` and `calculate_node_order()`, to populate internal class attributes for the `DataDictionary` class.
+
+*Note: A node is defined as the entity name*
+
+```python
+# initialise
+dd = gen3_validator.DataDictionary(schema_path = "../tests/schema/gen3_test_schema.json")
+
+# Call the orchestration method
+dd.parse_schema()
+dd.schema
+dd.schema_list
+
+# Call the node orchestration method
+dd.calculate_node_order()
+dd.nodes
+dd.node_pairs
+dd.node_order
+
+# You can also get a summary of node, node category, and the properties for each node wtih
+dd.generate_node_lookup()
+```
+
+
+
+## Creating resolver Instance
+- This class inherits methods from the `DataDictionary` class and provides tools to resolve the schema and return the resolved schema
+
+
+```python
+resolver = gen3_validator.ResolveSchema(schema_path = "../tests/schema/gen3_test_schema.json")
+resolver.resolve_schema()
+```
+
+You can return the resolved schema with
+
+
+```python
+resolver.schema_resolved
+```
 
 
 ## Finding Node Paths in the Schema Graph
