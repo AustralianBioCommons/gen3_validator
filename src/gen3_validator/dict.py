@@ -344,7 +344,7 @@ class DataDictionary:
             logger.error(f"Error converting schema list to JSON: {e}")
             raise
 
-    def get_schema_version(self, schema: dict) -> str:
+    def get_schema_version(self, schema: dict = None) -> str:
         """
         Extract the version of the schema from the provided schema dictionary.
 
@@ -354,6 +354,8 @@ class DataDictionary:
         :return: The version of the schema.
         :rtype: str
         """
+        if not schema:
+            schema = self.schema
         try:
             version = schema['_settings.yaml']['_dict_version']
             return version

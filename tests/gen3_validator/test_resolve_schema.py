@@ -206,4 +206,5 @@ def test_resolve_schema(ResolveSchema_instance, monkeypatch):
     assert isinstance(resolver.schema_resolved, dict)
     assert "sample.yaml" in resolver.schema_resolved
     assert "subject.yaml" in resolver.schema_resolved
+    assert resolver.get_schema_version() == "3.1.0"
     
