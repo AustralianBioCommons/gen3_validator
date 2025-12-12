@@ -12,9 +12,8 @@ schema = resolver.schema_resolved
 
 data = [
     {
-        "alternate_timepoint": "1f56770b0b",
-        "baseline_timepoint": true,
-        "freeze_thaw_cycles": 10,
+        "baseline_timepoint": True, # variable not in data dictionary
+        "freeze_thaw_cycles": "10", # should be an integer
         "sample_collection_method": "2fddbe7d09",
         "sample_id": "d4f31f7bb6",
         "sample_in_preservation": "snap Frozen",
@@ -31,11 +30,10 @@ data = [
         "type": "sample"
     },
     {
-        "alternate_timepoint": "da9b7324c3",
-        "baseline_timepoint": true,
+        "baseline_timepoint": True, 
         "freeze_thaw_cycles": 76,
         "sample_collection_method": "e2a6403b51",
-        "sample_id": "b19a9545df",
+        "sample_id": 3324635, # should be a string
         "sample_in_preservation": "not allowed to collect",
         "sample_in_storage": "unknown",
         "sample_provider": "USYD",
@@ -58,14 +56,49 @@ print(results)
 Example output:
 
 ```python
-[{'node': 'medical_history',
-  'index': 0,
-  'validation_result': 'FAIL',  
-  'invalid_key': 'root',
-  'schema_path': 'required',
-  'validator': 'required',
-  'validator_value': ['submitter_id', 'type'],
-  'validation_error': "'submitter_id' is a required property"}]
+[
+    {
+        'node': 'sample',
+        'index': 0,
+        'validation_result': 'FAIL',
+        'invalid_key': 'freeze_thaw_cycles',
+        'schema_path': 'properties.freeze_thaw_cycles.type',
+        'validator': 'type',
+        'validator_value': 'integer',
+        'validation_error': "'10' is not of type 'integer'"
+    },
+    {
+        'node': 'sample',
+        'index': 0,
+        'validation_result': 'FAIL',
+        'invalid_key': 'root',
+        'schema_path': 'additionalProperties',
+        'validator': 'additionalProperties',
+        'validator_value': False,
+        'validation_error': "Additional properties are not allowed ('baseline_timepoint', 'subjects' were unexpected)"
+    },
+    {
+        'node': 'sample',
+        'index': 1,
+        'validation_result': 'FAIL',
+        'invalid_key': 'sample_id',
+        'schema_path': 'properties.sample_id.type',
+        'validator': 'type',
+        'validator_value': 'string',
+        'validation_error': "3324635 is not of type 'string'"
+    },
+    {
+        'node': 'sample',
+        'index': 1,
+        'validation_result': 'FAIL',
+        'invalid_key': 'root',
+        'schema_path': 'additionalProperties',
+        'validator': 'additionalProperties',
+        'validator_value': False,
+        'validation_error': "Additional properties are not allowed ('baseline_timepoint', 'subjects' were unexpected)"
+    }
+]
+
 ```
 
 
