@@ -1,5 +1,5 @@
 import pytest
-from gen3_validator import *
+import gen3_validator as gen3_validator
 from typing import List, Dict, Any
 import os
 
@@ -33,7 +33,7 @@ def fixture_data_pass() -> List[Dict[str, Any]]:
         }
     ]
     return data
-    
+
 
 def fixture_data_fail() -> List[Dict[str, Any]]:
     data = [
@@ -66,16 +66,19 @@ def fixture_data_fail() -> List[Dict[str, Any]]:
     return data
 
 
+@pytest.fixture
 def fixture_schema_path() -> str:
     current_dir = os.path.dirname(__file__)
     schema_path = os.path.join(current_dir, "..", "schema", "gen3_test_schema.json")
     return schema_path
 
+
+@pytest.fixture
 def fixture_resolver_inst(fixture_schema_path) -> dict:
     resolver = gen3_validator.ResolveSchema(fixture_schema_path)
     resolver.resolve_schema()
     return resolver
 
-# def test_resolved_schema_version(fixture_resolver_inst):
-#     schema = fixture_resolver_inst.schema_resolved
-#     assert schema["_dict_version"] == "3.1.0"
+
+def test_resolved_schema_version(fixture_resolver_inst):
+    assert fixture_resolver_inst.get_schema_version() == "1.0.0"
