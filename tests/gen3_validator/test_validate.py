@@ -188,3 +188,23 @@ def test_catch_agilent_error(fixture_resolver_inst):
     error_msg = result[0]["validation_error"]
     assert "'Agilent QQQ LC-MS'" in error_msg
     assert "is not one of" in error_msg
+
+def test_catch_uppercase_enum_error(fixture_resolver_inst):
+    """
+    This test aims to catch Yes or No when it should be lowercase according to the schema
+    """
+    data = [{    
+        "submitter_id": "CDAH_medication_d4a8b34e-70c6-4e05-9898-5eba6ab0f88a",
+        "type": "medication",
+        "bp_lowering_meds": 'yes',
+        "diabetes_therapy": 'oral',
+        "lipid_lowering_meds": "No",  #this is an invalid value
+        "clinical_descriptors": {
+            "submitter_id": "CDAH_clinical_descriptor_50811594-b207-4e3e-8ab8-e8788806d2bc"
+        }
+    }]
+    resolved_schema = fixture_resolver_inst.schema_resolved
+    result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
+    error_msg = result[0]["validation_error"]
+    assert "'No'" in error_msg
+    assert "is not one of" in error_msg
