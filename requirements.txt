@@ -1,7 +1,2 @@
 jsonschema
 pandas
-numpy
-pydantic
-typing
-pytest
-uuid

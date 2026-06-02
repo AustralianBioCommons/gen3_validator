@@ -1,6 +1,6 @@
 [project]
 name = "gen3_validator"
-version = "2.0.0"
+version = "2.0.1"
 description = "Comprehensive toolkit for resolving Gen3 JSON schemas, validating JSON metadata against schemas, and verifying linkage integrity between data nodes. Includes utilities for parsing Excel metadata templates, generating linkage configuration maps, orchestrating schema validation, and producing detailed validation reports and statistics"
 authors = [
     {name = "JoshuaHarris391",email = "harjo391@gmail.com"}
@@ -10,18 +10,15 @@ readme = "README.md"
 requires-python = ">=3.9.5"
 dependencies = [
     "jsonschema >=4.23.0",
-    "pandas >=2.2.3",
-    "numpy >=1.26.0, <2.0.0",
-    "pydantic >=2.10.6",
-    "typing >=3.7.4.3",
-    "pytest >=8.3.4",
-    "uuid >=1.30",
-    "pyfakefs >=4.7.0",
-    "sphinx",
-    "shibuya",
-    "pyyaml (>=6.0.3,<7.0.0)",
-    "openpyxl (>=3.1.5,<4.0.0)"
+    "pandas >=2.2.3"
 ]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3.4"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+shibuya = "*"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
