@@ -90,3 +90,34 @@ def test_cli_writes_output_file(tmp_path, fixture_schema_path):
     written = json.loads(out_path.read_text(encoding="utf-8"))
     assert written[0]["node"] == "medical_history"
     assert code == 1
+
+
+def test_cli_no_link_check_disables_link_validation(tmp_path, fixture_schema_path, capsys):
+    """
+    A folder with a dangling cross-node reference exits 1 by default (the broken link is
+    reported), but exits 0 with --no-link-check, which validates schemas only.
+
+    The sample points at a clinical_descriptor that does not exist; the records themselves
+    are otherwise schema-valid, so link checking is the only thing that can fail here.
+    """
+    _write(tmp_path, "clinical_descriptor.json", [
+        {"submitter_id": "clinical_descriptor_1", "type": "clinical_descriptor"},
+    ])
+    _write(tmp_path, "sample.json", [
+        {
+            "submitter_id": "sample_1",
+            "type": "sample",
+            "clinical_descriptors": {"submitter_id": "clinical_descriptor_MISSING"},
+        },
+    ])
+    _write(tmp_path, "DataImportOrder.txt", "clinical_descriptor\nsample\n")
+
+    code_default = cli.main([str(tmp_path), "-s", fixture_schema_path])
+    report_default = json.loads(capsys.readouterr().out)
+    assert any(r["validator"] == "link" for r in report_default)
+    assert code_default == 1
+
+    code_no_links = cli.main([str(tmp_path), "-s", fixture_schema_path, "--no-link-check"])
+    report_no_links = json.loads(capsys.readouterr().out)
+    assert not any(r["validator"] == "link" for r in report_no_links)
+    assert code_no_links == 0

@@ -105,7 +105,7 @@ Example output:
 
 ## Bulk Folder Validation
 - Validates a whole folder of per-node JSON files against the Gen3 schema, processing each node in the sequence given by a data import order file.
-- Reuses the same schema validation as `validate_list_dict`; the import order only controls the processing and reporting sequence (no cross-node reference checking is performed).
+- Reuses the same schema validation as `validate_list_dict` for each node, and (by default) additionally checks **reference integrity** between nodes — that every link points to a record that exists. See [Link / reference integrity](#link--reference-integrity) below.
 
 ### Expected folder layout
 A folder contains one `<node>.json` file per node plus an import order file:
@@ -127,13 +127,43 @@ The `bulk.py` module provides:
 
 - `parse_import_order(order_file_path)` — Parse the import order file into an ordered list of node names. Tolerates plain names (one per line) and the numbered format. Raises `FileNotFoundError` if the file is missing (it is mandatory).
 - `load_node_records(file_path)` — Read a single `<node>.json` file and normalise it to a list of record dicts (a single object becomes `[object]`). Raises `ValueError` if the top-level JSON is neither an object nor an array.
-- `validate_data_folder(folder_path, resolved_schema, import_order_filename="DataImportOrder.txt")` — Core validator. Takes an already-resolved schema dict (e.g. `ResolveSchema(...).schema_resolved`) and returns the flat report.
-- `validate_data_folder_from_schema(folder_path, schema_path, import_order_filename="DataImportOrder.txt")` — Convenience wrapper that resolves the schema from a path and then calls `validate_data_folder`.
+- `validate_data_folder(folder_path, resolved_schema, import_order_filename="DataImportOrder.txt", check_links=True)` — Core validator. Takes an already-resolved schema dict (e.g. `ResolveSchema(...).schema_resolved`) and returns the flat report. Set `check_links=False` to validate schemas only.
+- `validate_data_folder_from_schema(folder_path, schema_path, import_order_filename="DataImportOrder.txt", check_links=True)` — Convenience wrapper that resolves the schema from a path and then calls `validate_data_folder`.
+
+These helpers support link checking (see below):
+
+- `extract_links(node_schema)` — Flatten a resolved node schema's `links` (including `subgroup` wrappers) into a list of `{"name", "target_type"}` descriptors.
+- `build_identifier_index(node_records)` — Build `{node: {id_key: {values}}}` from the loaded records so references can be resolved quickly. Every loaded node gets an entry, so a present-but-empty node is distinguishable from an absent one.
+- `validate_record_links(record, idx, node_name, links, index, warned=None)` — Check one record's link references against the index and return any link FAIL rows.
 
 ### Behaviour for non-ideal inputs
 - A node listed in the import order with **no matching file** is skipped with a warning.
 - A `*.json` file **present but not listed** in the import order is ignored with a warning.
 - A node file that **cannot be loaded or validated** (invalid JSON, a record missing `"type"`, a node not in the schema) produces a single row with `validation_result: "ERROR"` and processing continues — one bad file never aborts the run.
+
+### Link / reference integrity
+When `check_links=True` (the default), the validator also checks that the links between nodes resolve.
+
+- In Gen3 a child record links up to a parent via a property named after the parent (the link `name`, typically the parent pluralised — e.g. a `sample` links to a `clinical_descriptor` via `"clinical_descriptors"`). The resolved schema's `links` array provides the authoritative `name → target_type` mapping.
+- A reference value is either a single object `{"submitter_id": "..."}` or an array of them. The identifier is usually `submitter_id`; `project` is referenced by `code`. A reference resolves if any identifier it carries matches a record in the target node.
+- A link whose **target node is absent** from the folder (e.g. `project` → `program` with no `program.json`) is **skipped with a warning** — there is nothing to validate against. A link into a node that is **present but empty** is reported as a failure.
+- Dangling references are reported as rows with `validator: "link"`, `invalid_key` set to the link property, and `validator_value` set to the target node:
+
+```python
+{
+    'node': 'sample',
+    'index': 0,
+    'validation_result': 'FAIL',
+    'invalid_key': 'clinical_descriptors',
+    'schema_path': 'links',
+    'validator': 'link',
+    'validator_value': 'clinical_descriptor',
+    'validation_error': "Link 'clinical_descriptors' references clinical_descriptor "
+                        "'clinical_descriptor_MISSING' (by submitter_id) but no matching record "
+                        "exists in clinical_descriptor.json",
+    'source_file': 'sample.json'
+}
+```
 
 ### Example
 ```python
@@ -179,7 +209,7 @@ Installing the package exposes the `gen3-validate` command:
 gen3-validate path/to/my_submission -s path/to/gen3_schema.json
 ```
 
-Flags: `-s/--schema` (required), `--order-file` (default `DataImportOrder.txt`), `-o/--output` (write the JSON report to a file instead of stdout), `-v/--verbose`. Exit code is `0` when clean, `1` when any record is a FAIL/ERROR, and `2` for input errors (e.g. a missing import order file).
+Flags: `-s/--schema` (required), `--order-file` (default `DataImportOrder.txt`), `-o/--output` (write the JSON report to a file instead of stdout), `--no-link-check` (disable reference integrity checks; validate schemas only), `-v/--verbose`. Exit code is `0` when clean, `1` when any record is a FAIL/ERROR, and `2` for input errors (e.g. a missing import order file).
 
 
 ## Creating a Dictionary Instance
