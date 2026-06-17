@@ -117,7 +117,8 @@ Example output:
 
 Instead of assembling a list of objects by hand, you can point Gen3 Validator at a **folder** that
 holds one JSON file per node plus a data import order file, and it will validate every node **in
-import order**, reusing the same schema validation shown above.
+import order**, reusing the same schema validation shown above. It also checks the **links between
+nodes** (reference integrity) by default — see [below](#link--reference-integrity).
 
 ### Expected folder layout
 
@@ -181,6 +182,48 @@ validated (invalid JSON, a record missing `"type"`, etc.) a single row with
 `'validation_result': 'ERROR'` is emitted for that node and processing continues — one bad file never
 aborts the run.
 
+### Link / reference integrity
+
+By default the folder validator also checks that the **links between nodes resolve**: for every
+record, each link reference must point to a record that actually exists in the target node's file.
+In Gen3 a child links up to a parent via a property named after the parent (e.g. a `sample` links to
+a `clinical_descriptor` via `"clinical_descriptors": {"submitter_id": "..."}`), and the reference may
+be a single object or an array of them. Most nodes are referenced by `submitter_id`; `project` is
+referenced by `code`.
+
+A dangling reference is reported as a row with `validator: "link"`:
+
+```python
+{
+    'node': 'sample',
+    'index': 0,                       # index of the record within its node file
+    'validation_result': 'FAIL',
+    'invalid_key': 'clinical_descriptors',   # the link property
+    'schema_path': 'links',
+    'validator': 'link',
+    'validator_value': 'clinical_descriptor',  # the target node
+    'validation_error': "Link 'clinical_descriptors' references clinical_descriptor "
+                        "'clinical_descriptor_MISSING' (by submitter_id) but no matching record "
+                        "exists in clinical_descriptor.json",
+    'source_file': 'sample.json'
+}
+```
+
+Rules:
+- A link whose **target node is absent** from the folder (e.g. `project` links to `program`, but
+  there is no `program.json`) is **skipped with a warning** — there is nothing to validate against.
+- A link into a node that is **present but empty** is reported as a failure.
+- Disable link checking with the `check_links=False` parameter (Python API) or the `--no-link-check`
+  flag (CLI) to validate schemas only.
+
+```python
+results = gen3_validator.validate_data_folder_from_schema(
+    folder_path="path/to/my_submission",
+    schema_path="path/to/gen3_schema.json",
+    check_links=False,   # schema validation only
+)
+```
+
 ### Command line
 
 Installing the package also exposes a `gen3-validate` command:
@@ -194,6 +237,7 @@ gen3-validate path/to/my_submission -s path/to/gen3_schema.json
 | `-s`, `--schema` | Path to the Gen3 JSON schema (required). |
 | `--order-file`   | Import order filename within the folder (default `DataImportOrder.txt`). |
 | `-o`, `--output` | Write the JSON report to a file instead of stdout. |
+| `--no-link-check`| Disable cross-node reference integrity checks (validate schemas only). |
 | `-v`, `--verbose`| Verbose (INFO-level) logging. |
 
 The report is printed as JSON to stdout (or written with `-o`). The exit code is `0` when the folder

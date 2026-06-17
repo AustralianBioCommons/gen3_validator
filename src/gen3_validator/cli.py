@@ -40,6 +40,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Path to write the JSON report. If omitted, the report is printed to stdout.",
     )
     parser.add_argument(
+        "--no-link-check",
+        action="store_true",
+        help=(
+            "Disable cross-node reference integrity checks (validate each node's records "
+            "against the schema only)."
+        ),
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -52,10 +60,11 @@ def main(argv=None) -> int:
     """
     Command-line entry point for bulk folder validation.
 
-    Resolves the schema, validates the folder in import order, emits the flat JSON report
-    (to a file with ``-o`` or to stdout otherwise), prints a summary to stderr, and returns
-    an exit code: ``1`` if any record is a FAIL or ERROR, ``0`` if the folder is clean, and
-    ``2`` for input errors (e.g. a missing import order file or unreadable schema).
+    Resolves the schema, validates the folder in import order (schema validation plus
+    cross-node reference integrity unless ``--no-link-check`` is given), emits the flat JSON
+    report (to a file with ``-o`` or to stdout otherwise), prints a summary to stderr, and
+    returns an exit code: ``1`` if any record is a FAIL or ERROR, ``0`` if the folder is
+    clean, and ``2`` for input errors (e.g. a missing import order file or unreadable schema).
 
     :param argv: Optional argument list (defaults to ``sys.argv[1:]``).
     :return: Process exit code.
@@ -71,7 +80,10 @@ def main(argv=None) -> int:
 
     try:
         report = bulk.validate_data_folder_from_schema(
-            args.folder, args.schema, args.order_file
+            args.folder,
+            args.schema,
+            args.order_file,
+            check_links=not args.no_link_check,
         )
     except (FileNotFoundError, json.JSONDecodeError) as e:
         print(f"error: {e}", file=sys.stderr)
