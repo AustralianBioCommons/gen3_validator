@@ -103,6 +103,85 @@ Example output:
 
 
 
+## Bulk Folder Validation
+- Validates a whole folder of per-node JSON files against the Gen3 schema, processing each node in the sequence given by a data import order file.
+- Reuses the same schema validation as `validate_list_dict`; the import order only controls the processing and reporting sequence (no cross-node reference checking is performed).
+
+### Expected folder layout
+A folder contains one `<node>.json` file per node plus an import order file:
+
+```
+my_submission/
+├── DataImportOrder.txt      # node names, one per line, in the order to process them
+├── project.json             # a single JSON object  (one record)
+├── subject.json             # a JSON array of record objects
+└── ... one <node>.json per node
+```
+
+- Each `<node>.json` is either a JSON **array** of records or a **single object** (e.g. `project.json`); a single object is normalised to a one-record list.
+- Every record must carry a `"type"` field equal to its node name.
+- `DataImportOrder.txt` lists node names, one per line. A numbered format (`1<TAB>project`, `2<TAB>subject`, ...) is also accepted; blank lines and `#` comments are ignored.
+
+### Functions
+The `bulk.py` module provides:
+
+- `parse_import_order(order_file_path)` — Parse the import order file into an ordered list of node names. Tolerates plain names (one per line) and the numbered format. Raises `FileNotFoundError` if the file is missing (it is mandatory).
+- `load_node_records(file_path)` — Read a single `<node>.json` file and normalise it to a list of record dicts (a single object becomes `[object]`). Raises `ValueError` if the top-level JSON is neither an object nor an array.
+- `validate_data_folder(folder_path, resolved_schema, import_order_filename="DataImportOrder.txt")` — Core validator. Takes an already-resolved schema dict (e.g. `ResolveSchema(...).schema_resolved`) and returns the flat report.
+- `validate_data_folder_from_schema(folder_path, schema_path, import_order_filename="DataImportOrder.txt")` — Convenience wrapper that resolves the schema from a path and then calls `validate_data_folder`.
+
+### Behaviour for non-ideal inputs
+- A node listed in the import order with **no matching file** is skipped with a warning.
+- A `*.json` file **present but not listed** in the import order is ignored with a warning.
+- A node file that **cannot be loaded or validated** (invalid JSON, a record missing `"type"`, a node not in the schema) produces a single row with `validation_result: "ERROR"` and processing continues — one bad file never aborts the run.
+
+### Example
+```python
+import gen3_validator
+
+# Resolve the schema yourself and reuse it...
+resolver = gen3_validator.ResolveSchema(schema_path="../tests/schema/gen3_test_schema.json")
+resolver.resolve_schema()
+results = gen3_validator.validate_data_folder("path/to/my_submission", resolver.schema_resolved)
+
+# ...or do it in one call:
+results = gen3_validator.validate_data_folder_from_schema(
+    folder_path="path/to/my_submission",
+    schema_path="../tests/schema/gen3_test_schema.json",
+)
+
+print(results)
+```
+
+**Output** — a single flat list of failures, ordered by import order. Each row matches the `validate_list_dict` output plus a `source_file` field:
+
+```python
+[
+    {
+        'node': 'project',
+        'index': 0,                       # index of the record within its node file
+        'validation_result': 'FAIL',
+        'invalid_key': 'root',
+        'schema_path': 'additionalProperties',
+        'validator': 'additionalProperties',
+        'validator_value': False,
+        'validation_error': "Additional properties are not allowed ('data_release', 'data_release_date' were unexpected)",
+        'source_file': 'project.json'
+    },
+    ...
+]
+```
+
+### Command line
+Installing the package exposes the `gen3-validate` command:
+
+```bash
+gen3-validate path/to/my_submission -s path/to/gen3_schema.json
+```
+
+Flags: `-s/--schema` (required), `--order-file` (default `DataImportOrder.txt`), `-o/--output` (write the JSON report to a file instead of stdout), `-v/--verbose`. Exit code is `0` when clean, `1` when any record is a FAIL/ERROR, and `2` for input errors (e.g. a missing import order file).
+
+
 ## Creating a Dictionary Instance
 The `DataDictionary` class in `dict.py` provides tools to:
 

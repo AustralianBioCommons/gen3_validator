@@ -113,6 +113,95 @@ Example output:
 
 ---
 
+## Bulk Folder Validation
+
+Instead of assembling a list of objects by hand, you can point Gen3 Validator at a **folder** that
+holds one JSON file per node plus a data import order file, and it will validate every node **in
+import order**, reusing the same schema validation shown above.
+
+### Expected folder layout
+
+```
+my_submission/
+├── DataImportOrder.txt      # node names, one per line, in the order to process them
+├── project.json             # a single JSON object  (one record)
+├── subject.json             # a JSON array of record objects
+├── sample.json
+└── ... one <node>.json per node
+```
+
+- Each `<node>.json` is either a JSON **array** of records or a **single object** (e.g.
+  `project.json`); single objects are treated as a one-record list.
+- Every record must carry a `"type"` field equal to its node name (same requirement as the
+  in-memory API).
+- `DataImportOrder.txt` lists node names, one per line. A numbered format
+  (`1<TAB>project`, `2<TAB>subject`, ...) is also accepted.
+
+### Python API
+
+```python
+import gen3_validator
+
+# Convenience: resolve the schema from a path and validate the folder in one call.
+results = gen3_validator.validate_data_folder_from_schema(
+    folder_path="path/to/my_submission",
+    schema_path="path/to/gen3_schema.json",
+)
+
+# Or, if you already have a resolved schema, reuse it:
+resolver = gen3_validator.ResolveSchema(schema_path="path/to/gen3_schema.json")
+resolver.resolve_schema()
+results = gen3_validator.validate_data_folder("path/to/my_submission", resolver.schema_resolved)
+```
+
+The output is a single **flat list** of failures, ordered by import order. Each row is the same
+shape as the in-memory validator's output plus a `source_file` field naming the file the record came
+from:
+
+```python
+[
+    {
+        'node': 'project',
+        'index': 0,                       # index of the record within its node file
+        'validation_result': 'FAIL',
+        'invalid_key': 'root',
+        'schema_path': 'additionalProperties',
+        'validator': 'additionalProperties',
+        'validator_value': False,
+        'validation_error': "Additional properties are not allowed ('data_release', 'data_release_date' were unexpected)",
+        'source_file': 'project.json'
+    },
+    ...
+]
+```
+
+A node listed in the import order with no matching file is skipped with a warning, and a `*.json`
+file not listed in the import order is ignored with a warning. If a node file cannot be loaded or
+validated (invalid JSON, a record missing `"type"`, etc.) a single row with
+`'validation_result': 'ERROR'` is emitted for that node and processing continues — one bad file never
+aborts the run.
+
+### Command line
+
+Installing the package also exposes a `gen3-validate` command:
+
+```bash
+gen3-validate path/to/my_submission -s path/to/gen3_schema.json
+```
+
+| Flag | Description |
+|------|-------------|
+| `-s`, `--schema` | Path to the Gen3 JSON schema (required). |
+| `--order-file`   | Import order filename within the folder (default `DataImportOrder.txt`). |
+| `-o`, `--output` | Write the JSON report to a file instead of stdout. |
+| `-v`, `--verbose`| Verbose (INFO-level) logging. |
+
+The report is printed as JSON to stdout (or written with `-o`). The exit code is `0` when the folder
+is clean, `1` when any record is a FAIL or ERROR, and `2` for input errors (e.g. a missing import
+order file). This makes it convenient as a pass/fail gate in scripts and CI.
+
+---
+
 ## Dev Setup
 1. Make sure you have [poetry](https://python-poetry.org/docs/#installing-with-pipx) installed.
 2. Clone the repository.
