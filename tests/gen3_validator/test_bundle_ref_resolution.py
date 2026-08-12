@@ -237,6 +237,30 @@ def test_dangling_pointer_raises_with_segment(monkeypatch, mini_bundle):
     assert "sample.yaml" in message
 
 
+def test_dangling_ref_in_term_block_is_tolerated(monkeypatch, mini_bundle):
+    """A dangling ref inside a documentation-only term/terms block warns, not raises.
+
+    The official Gen3 develop dictionary ships term blocks whose refs dangle
+    (e.g. ``_terms.yaml#/file_format`` with no ``file_format`` key in
+    ``_terms.yaml``). Term blocks carry no validation semantics — the historic
+    operator workaround was to strip them all before use — so an unresolvable
+    ref there must not block resolution of the whole dictionary. Structural
+    refs (see test_dangling_pointer_raises_with_segment) still fail loud.
+
+    Input: a property whose ``term`` refs a key missing from _terms.yaml.
+    Expected: resolution succeeds; the term block resolves to {} and the
+    property's structural content is intact.
+    """
+    bundle = copy.deepcopy(mini_bundle)
+    bundle["sample.yaml"]["properties"]["documented"] = {
+        "type": "string",
+        "term": {"$ref": "_terms.yaml#/does_not_exist"},
+    }
+    _, props = resolved_sample(monkeypatch, bundle)
+    assert props["documented"]["type"] == "string"
+    assert props["documented"]["term"] == {}
+
+
 def test_cycle_raises_circular_ref_error(monkeypatch, mini_bundle):
     """A circular ref chain raises CircularRefError, not RecursionError.
 
@@ -396,4 +420,5 @@ def test_real_fixture_full_resolution():
     # ubiquitous_properties from _definitions.yaml must be inlined
     assert "submitter_id" in demographic["properties"]
     assert "$ref" not in demographic["properties"]
-    assert resolver.get_schema_version() == "3.1.0"
+    # the fixture's _settings.yaml declares _dict_version 1.0.0
+    assert resolver.get_schema_version() == "1.0.0"
