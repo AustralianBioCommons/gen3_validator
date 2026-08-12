@@ -1,6 +1,6 @@
 [project]
 name = "gen3_validator"
-version = "2.1.0"
+version = "2.2.0"
 description = "Comprehensive toolkit for resolving Gen3 JSON schemas, validating JSON metadata against schemas, and verifying linkage integrity between data nodes. Includes utilities for parsing Excel metadata templates, generating linkage configuration maps, orchestrating schema validation, and producing detailed validation reports and statistics"
 authors = [
     {name = "JoshuaHarris391",email = "harjo391@gmail.com"}
