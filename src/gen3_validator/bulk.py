@@ -3,7 +3,7 @@ import glob
 import json
 import logging
 
-from gen3_validator.validate import validate_list_dict, pull_schema
+from gen3_validator.validate import validate_list_dict, pull_schema, error_record
 from gen3_validator.resolve_schema import ResolveSchema
 
 logger = logging.getLogger(__name__)
@@ -127,23 +127,17 @@ def _problem_record(node: str, filename: str, message: str) -> dict:
     ``validation_result`` set to ``"ERROR"`` to distinguish structural/load problems from
     schema validation failures.
 
+    Built on :func:`gen3_validator.validate.error_record` so the bulk report and the
+    per-record ERROR rows validate_list_dict emits cannot drift apart. ``index`` is None
+    because this row describes a whole node, not one record within it.
+
     :param node: The node name.
     :param filename: The source filename for the node.
     :param message: A human-readable description of the problem.
     :return: A report row dictionary.
     :rtype: dict
     """
-    return {
-        "node": node,
-        "index": None,
-        "validation_result": "ERROR",
-        "invalid_key": None,
-        "schema_path": None,
-        "validator": None,
-        "validator_value": None,
-        "validation_error": message,
-        "source_file": filename,
-    }
+    return {**error_record(node, None, message), "source_file": filename}
 
 
 def extract_links(node_schema: dict) -> list:
@@ -404,12 +398,21 @@ def validate_data_folder(
         try:
             schema_results = validate_list_dict(records, resolved_schema)
         except Exception as e:
+            # Backstop only. Unknown/missing node types come back as ERROR rows
+            # rather than raising, so reaching here means something rarer — a
+            # malformed node schema that Draft4Validator itself rejects. Still
+            # worth a row instead of losing the whole run.
             logger.error(f"Failed to validate node '{node}' ({filename}): {e}")
             results.append(_problem_record(node, filename, str(e)))
             continue  # structurally broken node; skip link checks
 
         for record in schema_results:
             record["source_file"] = filename
+            # A record with no 'type' key comes back with node=None, but in a
+            # bulk folder the filename already tells us which node it belongs
+            # to. Backfill it so the report stays groupable by node.
+            if record["node"] is None:
+                record["node"] = node
         results.extend(schema_results)
 
         if check_links:

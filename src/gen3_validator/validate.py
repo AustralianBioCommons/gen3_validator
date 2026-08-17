@@ -76,9 +76,44 @@ def pull_schema(node: str, schema: dict) -> dict:
     """
     return schema.get(node) or schema.get(f"{node}.yaml")
 
+
+def error_record(node, idx, message: str) -> dict:
+    """
+    Build a result row for a record that could not be validated at all.
+
+    Shaped exactly like a :func:`validate_object` FAIL row so it slots into the
+    same flat report, but with ``validation_result`` set to ``"ERROR"`` to
+    distinguish "we could not check this" from "we checked it and it failed".
+
+    :param node: The node name, or None when the record did not declare one.
+    :param idx: The record's index within its file.
+    :param message: A human-readable description of the problem.
+    :return: A result row dictionary.
+    :rtype: dict
+    """
+    return {
+        "node": node,
+        "index": idx,
+        "validation_result": "ERROR",
+        "invalid_key": None,
+        "schema_path": None,
+        "validator": None,
+        "validator_value": None,
+        "validation_error": message,
+    }
+
+
 def validate_list_dict(data_list: list[dict], resolved_schema: dict) -> list[dict]:
     """
     Validates a list of JSON objects against a provided JSON schema.
+
+    A record that cannot be checked — no ``type`` key, or a ``type`` naming a
+    node absent from the resolved schema — yields an ERROR row and validation
+    continues. It does NOT raise: an unrecognised node is a fact about the
+    data, not a programming error, and callers need it reported alongside
+    everything else rather than in place of it. Raising here meant one bad
+    record suppressed every genuine finding in the same run, and left the
+    caller with nothing to write to its results table.
 
     :param list[dict] data_list: The list of JSON objects to validate.
     :param dict resolved_schema: The resolved JSON schema to use for validation.
@@ -88,26 +123,24 @@ def validate_list_dict(data_list: list[dict], resolved_schema: dict) -> list[dic
     """
     validation_results = []
     for idx, obj in enumerate(data_list):
-        
-        if "type" not in obj:
-            logger.error(
-                f"Error in validate_list_dict during object validation at index {idx}, key 'type' not found in object: {obj}"
-            )
-            raise Exception(
-                f"Error in validate_list_dict during object validation at index {idx}, key 'type' not found in {obj}"
-            )
-        node = obj["type"]
-        
+
+        node = obj.get("type")
+        if node is None:
+            message = f"record at index {idx} has no 'type' key"
+            logger.error(f"Error in validate_list_dict: {message}: {obj}")
+            validation_results.append(error_record(None, idx, message))
+            continue
+
         schema = pull_schema(os.path.splitext(node)[0], resolved_schema)
         if schema is None:
+            message = f"node '{node}' not found in resolved schema"
             logger.error(
-                f"Error in validate_list_dict during object validation at index {idx}, key '{node}' not found in resolved schema"
+                f"Error in validate_list_dict during object validation at index {idx}, {message}"
             )
-            raise Exception(
-                f"Error in validate_list_dict during object validation at index {idx}, key '{node}' not found in resolved schema"
-            )
-        
+            validation_results.append(error_record(node, idx, message))
+            continue
+
         validator = Draft4Validator(schema)
         validation_results.extend(validate_object(obj, idx, validator))
-        
+
     return validation_results
