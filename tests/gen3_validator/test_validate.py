@@ -151,6 +151,15 @@ def test_validate_json_fail(fixture_resolver_inst):
 
 
 def test_missing_type_key(fixture_resolver_inst):
+    """A record with no 'type' key is reported, not raised on.
+
+    Every Gen3 record names its node in a 'type' field; without it there is
+    nothing to look up a schema by, so the record cannot be checked. That is a
+    defect in the data, and the caller needs it back as a result row it can
+    write to a report alongside everything else. Before this behaviour existed
+    the function raised instead, which threw away every other finding in the
+    same batch.
+    """
     data = [
         {
             "atrial_fibrillation": "yes",
@@ -159,8 +168,70 @@ def test_missing_type_key(fixture_resolver_inst):
     ]
     resolved_schema = fixture_resolver_inst.schema_resolved
 
-    with pytest.raises(Exception, match="Error in validate_list_dict during object validation at index 0, key 'type' not found in"):
-        gen3_validator.validate.validate_list_dict(data, resolved_schema)
+    result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
+
+    assert result == [
+        {
+            "node": None,
+            "index": 0,
+            "validation_result": "ERROR",
+            "invalid_key": None,
+            "schema_path": None,
+            "validator": None,
+            "validator_value": None,
+            "validation_error": "record at index 0 has no 'type' key",
+        }
+    ]
+
+
+def test_unknown_node_type(fixture_resolver_inst):
+    """A 'type' naming a node the dictionary does not define is reported, not raised on.
+
+    This is the exact shape of a real failure: the omix3 project's dbt models
+    emitted records of type 'case', but the omix3 dictionary calls that node
+    'subject' and has no 'case' at all. The run must say so in its results,
+    because that message is the only thing telling an operator which model to
+    rename.
+    """
+    data = [{"type": "case", "submitter_id": "case_0001"}]
+    resolved_schema = fixture_resolver_inst.schema_resolved
+
+    result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
+
+    assert len(result) == 1
+    assert result[0]["node"] == "case"
+    assert result[0]["index"] == 0
+    assert result[0]["validation_result"] == "ERROR"
+    assert result[0]["validation_error"] == "node 'case' not found in resolved schema"
+
+
+def test_unknown_node_does_not_suppress_real_failures(fixture_resolver_inst):
+    """An unreportable record must not hide the genuine failures beside it.
+
+    THE regression this change exists for. validate_list_dict used to raise on
+    the first unknown node type, so a single stray record aborted the batch and
+    every real schema violation after it went unreported — the caller saw one
+    exception instead of a list of things to fix. Both records here must come
+    back: the unknown type as ERROR, the bad enum value as FAIL.
+
+    Ordering matters too. The unknown type is deliberately FIRST, because that
+    is the position that used to abort everything downstream.
+    """
+    data = [
+        {"type": "case", "submitter_id": "case_0001"},
+        {
+            "type": "medical_history",
+            "submitter_id": "medical_history_7598b38ca0",
+            "atrial_fibrillation": "definitely",  # not in the enum
+        },
+    ]
+    resolved_schema = fixture_resolver_inst.schema_resolved
+
+    result = gen3_validator.validate.validate_list_dict(data, resolved_schema)
+
+    outcomes = {(r["node"], r["validation_result"]) for r in result}
+    assert ("case", "ERROR") in outcomes
+    assert ("medical_history", "FAIL") in outcomes
 
 
 def test_catch_agilent_error(fixture_resolver_inst):
